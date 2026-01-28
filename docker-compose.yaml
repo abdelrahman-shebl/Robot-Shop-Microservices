@@ -1,43 +1,43 @@
-version: '3'
 services:
   mongodb:
     build:
       context: mongo
     image: ${REPO}/rs-mongodb:${TAG}
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    volumes:
+      - mongo-data:/var/lib/mongodb:ro
     networks:
-      - robot-shop
-    logging: &logging
-      driver: "json-file"
-      options:
-        max-size: "25m"
-        max-file: "2"
+      - data-services
+
   redis:
     image: redis:latest
     networks:
-      - robot-shop
-    logging:
-      <<: *logging
+      - data-services
+
   rabbitmq:
     image: rabbitmq:3.8-management-alpine
     networks:
-      - robot-shop
-    logging:
-      <<: *logging
+      - message-queue
+
   catalogue:
     build:
       context: catalogue
     image: ${REPO}/rs-catalogue:${TAG}
     depends_on:
       - mongodb
+    environment:
+      MONGO_URL: ${MONGO_CONNECTION_STRING}
     networks:
-      - robot-shop
+      - api-services
+      - data-services
     healthcheck:
       test: [ "CMD", "curl", "-H", "X-INSTANA-SYNTHETIC: 1", "-f", "http://localhost:8080/health" ]
       interval: 10s
       timeout: 10s
       retries: 3
-    logging:
-      <<: *logging
+
   user:
     build:
       context: user
@@ -45,15 +45,17 @@ services:
     depends_on:
       - mongodb
       - redis
+    environment:
+      MONGO_URL: ${MONGO_CONNECTION_STRING_USER}
     networks:
-      - robot-shop
+      - api-services
+      - data-services
     healthcheck:
       test: [ "CMD", "curl", "-H", "X-INSTANA-SYNTHETIC: 1", "-f", "http://localhost:8080/health" ]
       interval: 10s
       timeout: 10s
       retries: 3
-    logging:
-      <<: *logging
+
   cart:
     build:
       context: cart
@@ -61,47 +63,60 @@ services:
     depends_on:
       - redis
     networks:
-      - robot-shop
+      - api-services
+      - data-services
     healthcheck:
       test: [ "CMD", "curl", "-H", "X-INSTANA-SYNTHETIC: 1", "-f", "http://localhost:8080/health" ]
       interval: 10s
       timeout: 10s
       retries: 3
-    logging:
-      <<: *logging
+
   mysql:
     build:
       context: mysql
     image: ${REPO}/rs-mysql-db:${TAG}
+    environment:
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: cities
     cap_add:
       - NET_ADMIN
+    volumes:
+      - mysql-data:/var/lib/mysql/:ro
     networks:
-      - robot-shop
-    logging:
-      <<: *logging
+      - data-services
+
   shipping:
     build:
       context: shipping
     image: ${REPO}/rs-shipping:${TAG}
     depends_on:
       - mysql
+    environment:
+      SPRING_DATASOURCE_URL: ${MYSQL_CONNECTION_STRING}
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
     networks:
-      - robot-shop
+      - api-services
+      - data-services
     healthcheck:
       test: ["CMD", "curl", "-H", "X-INSTANA-SYNTHETIC: 1", "-f", "http://localhost:8080/health"]
       interval: 10s
       timeout: 10s
       retries: 3
-    logging:
-      <<: *logging
+
   ratings:
     build:
       context: ratings
     image: ${REPO}/rs-ratings:${TAG}
     environment:
-      APP_ENV: prod
+      MYSQL_HOST: mysql
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: cities
     networks:
-      - robot-shop
+      - api-services
+      - data-services
     depends_on:
       - mysql
     healthcheck:
@@ -109,8 +124,7 @@ services:
       interval: 10s
       timeout: 10s
       retries: 3
-    logging:
-      <<: *logging
+
   payment:
     build:
       context: payment
@@ -118,17 +132,14 @@ services:
     depends_on:
       - rabbitmq
     networks:
-      - robot-shop
+      - api-services
+      - message-queue
     healthcheck:
       test: ["CMD", "curl", "-H", "X-INSTANA-SYNTHETIC: 1", "-f", "http://localhost:8080/health"]
       interval: 10s
       timeout: 10s
       retries: 3
-    # Uncomment to change payment gateway
-    #environment:
-      #PAYMENT_GATEWAY: "https://www.worldpay.com"
-    logging:
-      <<: *logging
+
   dispatch:
     build:
       context: dispatch
@@ -136,9 +147,8 @@ services:
     depends_on:
       - rabbitmq
     networks:
-      - robot-shop
-    logging:
-      <<: *logging
+      - message-queue
+
   web:
     build:
       context: web
@@ -154,7 +164,8 @@ services:
     ports:
       - "8080:8080"
     networks:
-      - robot-shop
+      - frontend
+      - api-services
     healthcheck:
       test: [ "CMD", "curl", "-H", "X-INSTANA-SYNTHETIC: 1", "-f", "http://localhost:8080/" ]
       interval: 10s
@@ -164,8 +175,13 @@ services:
     # environment:
       # INSTANA_EUM_KEY: <your eum key>
       # INSTANA_EUM_REPORTING_URL: <your reporting url>
-    logging:
-      <<: *logging
+
+volumes:
+  mysql-data:
+  mongo-data:
 
 networks:
-  robot-shop:
+  frontend:
+  api-services:
+  data-services:
+  message-queue:
