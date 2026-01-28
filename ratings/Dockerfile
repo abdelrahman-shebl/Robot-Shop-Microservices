@@ -3,10 +3,10 @@ FROM composer:2.7 AS vendor
 
 WORKDIR /app
 
-# ✅ FIX 1: Copy from 'html/' folder, and ONLY copy composer.json (no lock file)
+#  FIX 1: Copy from 'html/' folder, and ONLY copy composer.json (no lock file)
 COPY html/composer.json ./
 
-# ✅ FIX 2: Install dependencies (This generates the missing lock file automatically)
+#  FIX 2: Install dependencies (This generates the missing lock file automatically)
 RUN composer install \
     --no-dev \
     --no-scripts \
