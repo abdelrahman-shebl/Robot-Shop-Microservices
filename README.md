@@ -345,4 +345,3 @@ docker-compose down -v --rmi all
 ## 📄 License
 
 See [LICENSE](LICENSE) file for details.
-
