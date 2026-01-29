@@ -13,7 +13,7 @@ services:
       USER_MONGO_PASSWORD: ${USER_MONGO_PASSWORD}
       USER_MONGO_DATABASE: ${USER_MONGO_DATABASE}
     volumes:
-      - mongo-data:/var/lib/mongodb:ro
+      - mongo-data:/var/lib/mongodb
     networks:
       - data-services
 
@@ -99,7 +99,7 @@ services:
     cap_add:
       - NET_ADMIN
     volumes:
-      - mysql-data:/var/lib/mysql/:ro
+      - mysql-data:/var/lib/mysql/
     networks:
       - data-services
 
