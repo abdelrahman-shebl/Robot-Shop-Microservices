@@ -13,16 +13,16 @@ public class JpaConfig {
 
     @Bean
     public DataSource getDataSource() {
-        String JDBC_URL = String.format("jdbc:mysql://%s/cities?useSSL=false&autoReconnect=true", System.getenv("DB_HOST") == null ? "mysql" : System.getenv("DB_HOST"));
+        String JDBC_URL = System.getenv("SPRING_DATASOURCE_URL");
+        if (JDBC_URL == null || JDBC_URL.isEmpty()) {
+            throw new RuntimeException("SPRING_DATASOURCE_URL environment variable is required");
+        }
 
         logger.info("jdbc url {}", JDBC_URL);
 
         DataSourceBuilder bob = DataSourceBuilder.create();
-
         bob.driverClassName("com.mysql.jdbc.Driver");
         bob.url(JDBC_URL);
-        bob.username("shipping");
-        bob.password("secret");
 
         return bob.build();
     }

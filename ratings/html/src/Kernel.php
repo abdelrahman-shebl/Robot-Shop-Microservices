@@ -74,9 +74,15 @@ class Kernel extends BaseKernel implements EventSubscriberInterface
         ]);
 
         $c->setParameter('catalogueUrl', getenv('CATALOGUE_URL') ?: 'http://catalogue:8080');
-        $c->setParameter('pdo_dsn', getenv('PDO_URL') ?: 'mysql:host=mysql;dbname=ratings;charset=utf8mb4');
-        $c->setParameter('pdo_user', 'ratings');
-        $c->setParameter('pdo_password', 'iloveit');
+        
+        $pdo_dsn = getenv('PDO_URL');
+        if (!$pdo_dsn) {
+            throw new \Exception('PDO_URL environment variable is required (format: mysql:host=host;port=port;dbname=database;user=username;password=password)');
+        }
+        
+        $c->setParameter('pdo_dsn', $pdo_dsn);
+        $c->setParameter('pdo_user', '');
+        $c->setParameter('pdo_password', '');
         $c->setParameter('logger.name', 'RatingsAPI');
 
         $c->register(InstanaHeadersLoggingProcessor::class)

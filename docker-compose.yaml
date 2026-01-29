@@ -4,8 +4,14 @@ services:
       context: mongo
     image: ${REPO}/rs-mongodb:${TAG}
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      CATALOGUE_MONGO_USER: ${CATALOGUE_MONGO_USER}
+      CATALOGUE_MONGO_PASSWORD: ${CATALOGUE_MONGO_PASSWORD}
+      CATALOGUE_MONGO_DATABASE: ${CATALOGUE_MONGO_DATABASE}
+      USER_MONGO_USER: ${USER_MONGO_USER}
+      USER_MONGO_PASSWORD: ${USER_MONGO_PASSWORD}
+      USER_MONGO_DATABASE: ${USER_MONGO_DATABASE}
     volumes:
       - mongo-data:/var/lib/mongodb:ro
     networks:
@@ -28,7 +34,7 @@ services:
     depends_on:
       - mongodb
     environment:
-      MONGO_URL: ${MONGO_CONNECTION_STRING}
+      MONGO_URL: mongodb://${CATALOGUE_MONGO_USER}:${CATALOGUE_MONGO_PASSWORD}@mongodb:27017/${CATALOGUE_MONGO_DATABASE}
     networks:
       - api-services
       - data-services
@@ -46,7 +52,7 @@ services:
       - mongodb
       - redis
     environment:
-      MONGO_URL: ${MONGO_CONNECTION_STRING_USER}
+      MONGO_URL: mongodb://${USER_MONGO_USER}:${USER_MONGO_PASSWORD}@mongodb:27017/${USER_MONGO_DATABASE}
     networks:
       - api-services
       - data-services
@@ -76,9 +82,12 @@ services:
       context: mysql
     image: ${REPO}/rs-mysql-db:${TAG}
     environment:
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_DATABASE: cities
+      SHIPPING_MYSQL_USER: ${SHIPPING_MYSQL_USER}
+      SHIPPING_MYSQL_PASSWORD: ${SHIPPING_MYSQL_PASSWORD}
+      SHIPPING_MYSQL_DATABASE: ${SHIPPING_MYSQL_DATABASE}
+      RATINGS_MYSQL_USER: ${RATINGS_MYSQL_USER}
+      RATINGS_MYSQL_PASSWORD: ${RATINGS_MYSQL_PASSWORD}
+      RATINGS_MYSQL_DATABASE: ${RATINGS_MYSQL_DATABASE}
     cap_add:
       - NET_ADMIN
     volumes:
@@ -92,6 +101,8 @@ services:
     image: ${REPO}/rs-shipping:${TAG}
     depends_on:
       - mysql
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://${SHIPPING_MYSQL_USER}:${SHIPPING_MYSQL_PASSWORD}@mysql:3306/${SHIPPING_MYSQL_DATABASE}?useSSL=false&autoReconnect=true
     networks:
       - api-services
       - data-services
@@ -105,6 +116,8 @@ services:
     build:
       context: ratings
     image: ${REPO}/rs-ratings:${TAG}
+    environment:
+      PDO_URL: mysql:host=mysql;port=3306;dbname=${RATINGS_MYSQL_DATABASE};user=${RATINGS_MYSQL_USER};password=${RATINGS_MYSQL_PASSWORD};charset=utf8mb4
     networks:
       - api-services
       - data-services
