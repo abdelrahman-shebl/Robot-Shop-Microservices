@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: php-deployment
+  name: ratings-deployment
   labels:
     app: php
 spec:
