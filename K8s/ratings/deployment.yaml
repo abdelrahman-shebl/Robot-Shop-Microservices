@@ -17,5 +17,28 @@ spec:
       containers:
       - name: php
         image: robotshop/rs-ratings:2.1.0
+        env:
+
+          - name: MYSQL_HOST
+            value: mysql
+
+          - name: MYSQL_USER
+            valueFrom:
+              secretKeyRef:
+                key: MYSQL_USER
+                name: mysql-secrets
+
+          - name: MYSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: MYSQL_PASSWORD
+                name: mysql-secrets
+
+          - name: MYSQL_DATABASE
+            valueFrom:
+              secretKeyRef:
+                key: MYSQL_DATABASE
+                name: mysql-secrets
+
         ports:
         - containerPort: 80

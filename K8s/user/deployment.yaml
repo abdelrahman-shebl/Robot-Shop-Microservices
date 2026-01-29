@@ -17,5 +17,27 @@ spec:
       containers:
       - name: user
         image: robotshop/rs-user:2.1.0
+        env:
+          - name: MONGO_HOST
+            value: mongodb
+
+          - name: MONGO_USER
+            valueFrom:
+              secretKeyRef:
+                key: MONGO_USER
+                name: mongo-secrets
+
+          - name: MONGO_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: MONGO_PASSWORD
+                name: mongo-secrets
+
+          - name: MONGO_DATABASE
+            valueFrom:
+              secretKeyRef:
+                key: MONGO_DATABASE
+                name: mongo-secrets
+            
         ports:
         - containerPort: 8080
