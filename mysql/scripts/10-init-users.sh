@@ -2,14 +2,14 @@
 set -e
 
 # Create shipping database and user from environment variables
-mysql -u root <<-EOSQL
+mysql -u root -p"${MYSQL_ROOT_PASSWORD}" <<-EOSQL
     CREATE DATABASE IF NOT EXISTS ${SHIPPING_MYSQL_DATABASE} DEFAULT CHARACTER SET 'utf8';
     CREATE USER IF NOT EXISTS '${SHIPPING_MYSQL_USER}'@'%' IDENTIFIED BY '${SHIPPING_MYSQL_PASSWORD}';
     GRANT ALL ON ${SHIPPING_MYSQL_DATABASE}.* TO '${SHIPPING_MYSQL_USER}'@'%';
 EOSQL
 
 # Create ratings database and user from environment variables
-mysql -u root <<-EOSQL
+mysql -u root -p"${MYSQL_ROOT_PASSWORD}" <<-EOSQL
     CREATE DATABASE IF NOT EXISTS ${RATINGS_MYSQL_DATABASE} DEFAULT CHARACTER SET 'utf8';
     
     CREATE USER IF NOT EXISTS '${RATINGS_MYSQL_USER}'@'%' IDENTIFIED BY '${RATINGS_MYSQL_PASSWORD}';
