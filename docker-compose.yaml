@@ -38,7 +38,7 @@ services:
       timeout: 10s
       retries: 3
 
-  user:
+  user: #------#
     build:
       context: user
     image: ${REPO}/rs-user:${TAG}
@@ -92,10 +92,6 @@ services:
     image: ${REPO}/rs-shipping:${TAG}
     depends_on:
       - mysql
-    environment:
-      SPRING_DATASOURCE_URL: ${MYSQL_CONNECTION_STRING}
-      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
     networks:
       - api-services
       - data-services
@@ -109,11 +105,6 @@ services:
     build:
       context: ratings
     image: ${REPO}/rs-ratings:${TAG}
-    environment:
-      MYSQL_HOST: mysql
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_DATABASE: cities
     networks:
       - api-services
       - data-services
@@ -140,7 +131,7 @@ services:
       timeout: 10s
       retries: 3
 
-  dispatch:
+  dispatch: #------#
     build:
       context: dispatch
     image: ${REPO}/rs-dispatch:${TAG}
@@ -149,7 +140,7 @@ services:
     networks:
       - message-queue
 
-  web:
+  web: #------#
     build:
       context: web
       args:

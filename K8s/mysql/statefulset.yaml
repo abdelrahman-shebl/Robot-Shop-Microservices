@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql-ss
+spec:
+  selector:
+    matchLabels:
+      app: mysql 
+  serviceName: "mysql"
+  replicas: 3 
+  template:
+    metadata:
+      labels:
+        app: mysql 
+    spec:
+      containers:
+      - name: mysql
+        image:  robotshop/rs-mysql-db:2.1.0
+        envFrom:
+          - secretRef:
+              name: mysql-secrets
+        ports:
+        - containerPort: 3306
+
+        volumeMounts:
+        - name: mysql-data
+          mountPath: /var/lib/mysql/
+        
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 200Mi
