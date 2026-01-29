@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# This replaces the web/entrypoint.sh file to add resolver support
+
 # set -x
 
 # echo "arg 1 $1"
@@ -38,8 +40,12 @@ fi
 # make sure nginx can access the eum file
 chmod 644 $BASE_DIR/eum.html
 
-# apply environment variables to default.conf
-envsubst '${CATALOGUE_HOST} ${USER_HOST} ${CART_HOST} ${SHIPPING_HOST} ${PAYMENT_HOST} ${RATINGS_HOST}' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf
+# Copy nginx config (no environment variable substitution needed)
+cp /etc/nginx/conf.d/default.conf.template /etc/nginx/conf.d/default.conf
+
+# Add resolver to http block for dynamic DNS
+sed -i '/^http {/a\    resolver 127.0.0.11:53 127.0.0.1:53 valid=10s;' /etc/nginx/nginx.conf
+sed -i 's/resolver 127.0.0.11:53 127.0.0.1:53 valid=10s;/resolver 127.0.0.11 valid=10s;/g' /etc/nginx/nginx.conf
 
 if [ -f /tmp/ngx_http_opentracing_module.so -a -f /tmp/libinstana_sensor.so ]
 then
@@ -67,4 +73,3 @@ else
 fi
 
 exec nginx-debug -g "daemon off;"
-
