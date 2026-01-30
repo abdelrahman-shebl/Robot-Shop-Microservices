@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: shipping
+  labels:
+    app: shipping
+    env: production
+    version: v1.0
+    tier: backend
+  annotations:
+    maintainer: "Double Abdelrahman"
+    description: "Shipping Service for Robot Shop Microservices"
+spec:
+  selector:
+    app: shipping
+  ports:
+  - protocol: http
+    port: 8080
+    targetPort: 8080
+  type: ClusterIP
+  
