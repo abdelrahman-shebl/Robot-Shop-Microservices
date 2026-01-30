@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  labels:
+    app: rabbitmq
+    env: production
+    version: v2.1.0
+    tier: backend
+  annotations:  
+    maintainer: "Double Abdelrahman"  
+    description: "Service for Robot Shop RabbitMQ Service"
+spec:
+  type: ClusterIP
+  selector:
+    app: rabbitmq
+  ports:
+  - name: amqp 
+    port: 5672
+    targetPort: 5672
