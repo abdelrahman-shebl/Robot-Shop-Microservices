@@ -4,6 +4,12 @@ metadata:
   name: mysql
   labels:
     app: mysql
+    env: production
+    version: v1.0
+    tier: database
+  annotations:
+    maintainer: "Double Abdelrahman"
+    description: "MySQL Service for Robot Shop Microservices"
 spec:
   ports:
   - port: 3306
