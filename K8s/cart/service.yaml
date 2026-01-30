@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cart
+  labels:
+    app: cart
+    env: production
+    version: v2.1.0
+    tier: backend
+  annotations:  
+    maintainer: "Double Abdelrahman"
+    description: "Service for Robot Shop Cart Service"
+spec:
+  type: ClusterIP
+  selector:
+    app: cart
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
