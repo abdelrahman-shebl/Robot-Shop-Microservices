@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment
+  labels:
+    app: payment
+    env: production
+    version: v1.0
+    tier: backend
+  annotations:
+    maintainer: "Double Abdelrahman"
+    description: "Payment Service for Robot Shop Microservices"
+spec:
+  selector:
+    app: payment
+  ports:
+  - protocol: http
+    port: 8080
+    targetPort: 8080
+  type: ClusterIP
