@@ -2,6 +2,14 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: mysql-ss
+  labels:
+    app: mysql
+    env: production
+    version: v1.0
+    tier: database
+  annotations:
+    maintainer: "Double Abdelrahman"
+    description: "MySQL StatefulSet for Robot Shop Microservices"
 spec:
   selector:
     matchLabels:
