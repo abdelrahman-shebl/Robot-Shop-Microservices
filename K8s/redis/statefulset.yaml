@@ -2,6 +2,9 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: redis-ss
+  labels:
+    app: redis
+    tier: database
 spec:
   selector:
     matchLabels:
@@ -12,6 +15,7 @@ spec:
     metadata:
       labels:
         app: redis 
+        tier: database
     spec:
       containers:
       - name: redis

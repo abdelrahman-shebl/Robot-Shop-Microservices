@@ -24,6 +24,7 @@ spec:
     metadata:
       labels:
         app: shipping
+        tier: backend
     spec:
       containers:
       - name: shipping

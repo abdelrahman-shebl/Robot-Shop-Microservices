@@ -4,6 +4,7 @@ metadata:
   name: dispatch-deployment
   labels:
     app: dispatch
+    tier: message-queue
 spec:
   
   selector:
@@ -13,6 +14,7 @@ spec:
     metadata:
       labels:
         app: dispatch
+        tier: message-queue
     spec:
       containers:
       - name: dispatch

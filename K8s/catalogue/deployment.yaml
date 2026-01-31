@@ -22,6 +22,7 @@ spec:
   selector:
     matchLabels:
       app: catalogue  
+      tier: backend
   template:
     metadata:
       labels:

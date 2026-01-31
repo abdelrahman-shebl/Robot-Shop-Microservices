@@ -20,6 +20,7 @@ spec:
     metadata:
       labels:
         app: mysql 
+        tier: database
     spec:
       containers:
       - name: mysql

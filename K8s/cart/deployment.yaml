@@ -26,6 +26,7 @@ spec:
     metadata:
       labels:
         app: cart
+        tier: backend
     spec:
       containers:
       - name: cart
