@@ -16,6 +16,7 @@ spec:
         app: php
         tier: backend
     spec:
+      
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
@@ -54,6 +55,14 @@ spec:
               secretKeyRef:
                 key: MYSQL_DATABASE
                 name: mysql-secrets
+                
+        resources:
+          requests:
+            cpu: "350m"      
+            memory: "200Mi"  
+          limits:
+            cpu: "700m"      
+            memory: "400Mi" 
 
         ports:
         - containerPort: 80
