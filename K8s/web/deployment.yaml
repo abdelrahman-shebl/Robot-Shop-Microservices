@@ -33,5 +33,26 @@ spec:
           capabilities:
             drop:
               - ALL
+        readinessProbe:
+          httpGet:
+            path: /nginx_status
+            port: 8080
+          initialDelaySeconds: 20
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /nginx_status
+            port: 8080
+          initialDelaySeconds: 20
+          periodSeconds: 10
+
+        resources:
+          requests:
+            cpu: "350m"      
+            memory: "200Mi"  
+          limits:
+            cpu: "700m"      
+            memory: "400Mi" 
+
         ports:
         - containerPort: 8080

@@ -28,3 +28,11 @@ spec:
         securityContext:
           allowPrivilegeEscalation: false
         image: robotshop/rs-dispatch:2.1.0
+      
+        resources:
+          requests:
+            cpu: "350m"      
+            memory: "200Mi"  
+          limits:
+            cpu: "700m"      
+            memory: "400Mi"  
