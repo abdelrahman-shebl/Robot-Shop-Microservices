@@ -4,6 +4,7 @@ metadata:
   name: user-deployment
   labels:
     app: user
+    tier: backend
 spec:
   
   selector:
@@ -13,6 +14,7 @@ spec:
     metadata:
       labels:
         app: user
+        tier: backend
     spec:
       containers:
       - name: user

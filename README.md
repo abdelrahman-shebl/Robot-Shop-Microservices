@@ -99,12 +99,12 @@ A simple microservices-based e-commerce application demonstrating Docker Compose
 
 | Source | Destination | Network Path | Protocol |
 |--------|-------------|--------------|----------|
-| web | catalogue | frontend→api-services→data-services | HTTP |
-| web | user | frontend→api-services→data-services | HTTP |
-| web | cart | frontend→api-services→data-services | HTTP |
-| web | shipping | frontend→api-services→data-services | HTTP |
-| web | payment | frontend→api-services→message-queue | HTTP |
-| web | ratings | frontend→api-services→data-services | HTTP |
+| web | catalogue | frontend→api-services | HTTP |
+| web | user | frontend→api-services | HTTP |
+| web | cart | frontend→api-services | HTTP |
+| web | shipping | frontend→api-services | HTTP |
+| web | payment | frontend→api-services | HTTP |
+| web | ratings | frontend→api-services | HTTP |
 | catalogue | mongodb | api-services→data-services | MongoDB driver |
 | user | mongodb | api-services→data-services | MongoDB driver |
 | user | redis | api-services→data-services | Redis protocol |
@@ -113,6 +113,7 @@ A simple microservices-based e-commerce application demonstrating Docker Compose
 | shipping | mysql | api-services→data-services | JDBC |
 | shipping | cart | api-services | HTTP |
 | ratings | mysql | api-services→data-services | PDO |
+| ratings | catalogue | api-services | HTTP |
 | payment | rabbitmq | api-services→message-queue | AMQP |
 | payment | cart | api-services | HTTP |
 | payment | user | api-services | HTTP |

@@ -20,6 +20,7 @@ spec:
     metadata:
       labels:
         app: mongo 
+        tier: database
     spec:
       containers:
       - name: mongo

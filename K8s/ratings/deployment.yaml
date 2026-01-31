@@ -4,6 +4,7 @@ metadata:
   name: ratings-deployment
   labels:
     app: php
+    tier: backend
 spec:
   
   selector:
@@ -13,6 +14,7 @@ spec:
     metadata:
       labels:
         app: php
+        tier: backend
     spec:
       containers:
       - name: php

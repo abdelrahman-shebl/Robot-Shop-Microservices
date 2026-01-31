@@ -24,6 +24,7 @@ spec:
     metadata:
       labels:
         app: payment
+        tier: backend
     spec:
       containers:
       - name: payment

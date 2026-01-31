@@ -1,0 +1,62 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: user-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: user 
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: web
+
+    - podSelector:
+        matchLabels:
+          app: payment 
+    
+    ports:
+    - protocol: TCP
+      port: 8080  
+    
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+      
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+
+  - to:
+    - podSelector:
+        matchLabels:
+          app: mongo
+      
+    ports:
+    - protocol: TCP
+      port: 27017
+
+  - to:
+    - podSelector:
+        matchLabels:
+          app: redis
+      
+    ports:
+    - protocol: TCP
+      port: 6379
+
+
+  
+
+  
