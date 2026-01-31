@@ -23,6 +23,9 @@ RUN if [ -n "$KEY" ]; then \
 
 FROM nginx:latest
 
+# Create non-root user with specific UID/GID
+RUN groupadd -g 2000 appuser && useradd -u 1000 -g appuser appuser
+
 EXPOSE 8080
 
 ENV CATALOGUE_HOST=catalogue \
@@ -37,7 +40,15 @@ ENV CATALOGUE_HOST=catalogue \
 COPY --from=build /instana/*.so /tmp/
 
 COPY entrypoint.sh /root/
-ENTRYPOINT ["/root/entrypoint.sh"]
+RUN chown appuser:appuser /root/entrypoint.sh && chmod +x /root/entrypoint.sh
 
 COPY default.conf.template /etc/nginx/conf.d/default.conf.template
 COPY static /usr/share/nginx/html
+
+# Fix ownership of nginx directories
+RUN chown -R appuser:appuser /usr/share/nginx /var/cache/nginx /var/log/nginx /var/run/nginx.pid 2>/dev/null || true && \
+    chown -R appuser:appuser /etc/nginx
+
+USER appuser
+
+ENTRYPOINT ["/root/entrypoint.sh"]

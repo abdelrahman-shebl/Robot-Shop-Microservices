@@ -16,6 +16,15 @@ spec:
         app: dispatch
         tier: message-queue
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 2000
+        fsGroup: 3000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: dispatch
+        securityContext:
+          allowPrivilegeEscalation: false
         image: robotshop/rs-dispatch:2.1.0
