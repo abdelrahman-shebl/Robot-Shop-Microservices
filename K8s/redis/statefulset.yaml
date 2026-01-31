@@ -6,19 +6,33 @@ metadata:
     app: redis
     tier: database
 spec:
+
   selector:
+
     matchLabels:
       app: redis 
   serviceName: "redis"
   replicas: 3 
+
   template:
     metadata:
       labels:
         app: redis 
         tier: database
+  
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: redis
+        securityContext:
+          allowPrivilegeEscalation: false
+          
         image:  redis:latest
         ports:
         - containerPort: 6379

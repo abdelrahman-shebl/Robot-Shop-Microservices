@@ -1,5 +1,8 @@
 FROM python:3.9
 
+# Create non-root user with specific UID/GID
+RUN groupadd -g 2000 appuser && useradd -u 1000 -g appuser appuser
+
 # Some default values
 ENV HOST="http://localhost:8080/" \
     SILENT=0 \
@@ -17,5 +20,9 @@ RUN pip install -r requirements.txt
 COPY entrypoint.sh /load/
 COPY robot-shop.py /load/
 
-CMD ["./entrypoint.sh"]
+# Fix ownership
+RUN chown -R appuser:appuser /load
 
+USER appuser
+
+CMD ["./entrypoint.sh"]

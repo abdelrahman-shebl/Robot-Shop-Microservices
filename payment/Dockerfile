@@ -1,7 +1,7 @@
 FROM python:3.10-slim
 
-# Security: Create a non-root user immediately
-RUN groupadd -r appuser && useradd -r -g appuser appuser
+# Security: Create a non-root user with specific UID/GID
+RUN groupadd -g 2000 appuser && useradd -u 1000 -g appuser appuser
 
 WORKDIR /app
 
@@ -28,11 +28,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY *.py payment.ini ./
 
-# # Security: Change ownership of the app directory to the non-root user
-# RUN chown -R appuser:appuser /app
+# Security: Change ownership of the app directory to the non-root user
+RUN chown -R appuser:appuser /app
 
-# # Switch to the non-root user
-# USER appuser
+# Switch to the non-root user
+USER appuser
 
 EXPOSE 8080
 
