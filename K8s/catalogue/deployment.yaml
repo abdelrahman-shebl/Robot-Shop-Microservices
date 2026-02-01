@@ -22,7 +22,6 @@ spec:
   selector:
     matchLabels:
       app: catalogue  
-      tier: backend
   template:
     metadata:
       labels:
@@ -35,6 +34,21 @@ spec:
       - name: catalogue
         image: robotshop/rs-catalogue:2.1.0
         imagePullPolicy: IfNotPresent
+
+        env:
+        
+          - name: MONGO_HOST
+            value: mongodb
+          - name: MONGO_USER
+            value: catalogue
+          - name: MONGO_DATABASE
+            value: catalogue
+          - name: MONGO_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: MONGO_PASSWORD
+                name: mysql-secrets
+
         ports:
         - containerPort: 8080
         resources:
