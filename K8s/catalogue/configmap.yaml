@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: catalogue-config
-data:
-  MONGO_HOST: mongodb
-  MONGO_USER: catalogue
-  MONGO_DATABASE: catalogue
