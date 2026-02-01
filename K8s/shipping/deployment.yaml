@@ -24,7 +24,6 @@ spec:
     metadata:
       labels:
         app: shipping
-        tier: backend
     spec:
       containers:
       - name: shipping
@@ -32,6 +31,20 @@ spec:
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
+        env:
+        
+          - name: MYSQL_HOST
+            value: mysql
+          - name: MYSQL_USER
+            value: shipping
+          - name: MYSQL_DATABASE
+            value: cities
+          - name: MONGO_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: SHIPPING_MYSQL_PASSWORD
+                name: mysql-secrets
+
         envFrom:
         - configMapRef:
             name: shipping-config
