@@ -20,7 +20,6 @@ spec:
     metadata:
       labels:
         app: mongo 
-        tier: database
     spec:
       containers:
       - name: mongo
@@ -28,7 +27,7 @@ spec:
         imagePullPolicy: IfNotPresent
         envFrom:
           - secretRef:
-              name: mongo-secrets
+              name: mysql-secrets
         ports:
         - containerPort: 27017
 
