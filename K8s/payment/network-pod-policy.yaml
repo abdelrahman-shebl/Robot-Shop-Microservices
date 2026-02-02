@@ -5,7 +5,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app: cart
+      app: payment
   policyTypes:
   - Ingress
   - Egress
@@ -50,4 +50,5 @@ spec:
     ports:
     - protocol: TCP
       port: 5672
+
   
