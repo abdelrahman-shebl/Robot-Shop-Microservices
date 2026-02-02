@@ -1,11 +1,11 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-cart-traffic
+  name: allow-rabbitmq-traffic
 spec:
   podSelector:
     matchLabels:
-      app: cart
+      app: rabbitmq
   policyTypes:
   - Ingress
   - Egress
