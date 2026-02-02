@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-cart-traffic
+  name: allow-payment-traffic
 spec:
   podSelector:
     matchLabels:
@@ -52,3 +52,4 @@ spec:
       port: 5672
 
   
+
