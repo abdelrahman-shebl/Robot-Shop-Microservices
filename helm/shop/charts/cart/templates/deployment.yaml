@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+  labels:
+    app: {{ .Chart.Name }}
+    env: production
+    version: v2.1.0
+    tier: backend
+  annotations:
+    deployment.kubernetes.io/name: "cart"
+    deployment.kubernetes.io/version: "2.1.0"
+    maintainer: "Double Abdelrahman"
+    description: "Deployment for Robot Shop Cart Service"
+spec:
+  strategy:
+    type: {{ .Values.strategytype }}
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.ports.containerPort }}
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        startupProbe: 
+          httpGet:
+            path: {{ .Values.probes.path }}
+            port: {{ .Values.probes.port }}
+          failureThreshold: 60   # 30 attempts to check if the app is started
+          periodSeconds: 10       # check every 10 seconds
+
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.probes.path }}
+            port: {{ .Values.probes.port }}
+          initialDelaySeconds: 60 # give some time to start the app
+          periodSeconds: 10 # check every 10 seconds
+          timeoutSeconds: 5
+          failureThreshold: 3 # after 3 failures, consider the pod unhealthy
+
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.probes.path }}
+            port: {{ .Values.probes.port }}
+          initialDelaySeconds: 20 # give some time to start the app
+          periodSeconds: 5 # check every 5 seconds
+          timeoutSeconds: 3 # wait for 3 seconds
+          failureThreshold: 3 # after 3 failures, consider the pod not ready

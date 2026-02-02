@@ -1,0 +1,29 @@
+apiVersion: v2
+name: shop
+version: 0.1.0
+
+dependencies:
+  - name: cart
+    version: 0.1.0
+  - name: catalogue
+    version: 0.1.0
+  - name: frontend
+    version: 0.1.0
+  - name: user
+    version: 0.1.0
+  - name: payment
+    version: 0.1.0
+  - name: shipping
+    version: 0.1.0
+  - name: ratings
+    version: 0.1.0
+  - name: mongodb
+    version: 0.1.0
+  - name: mysql
+    version: 0.1.0
+  - name: redis
+    version: 0.1.0
+  - name: rabbitmq
+    version: 0.1.0
+  - name: dispatch
+    version: 0.1.0
