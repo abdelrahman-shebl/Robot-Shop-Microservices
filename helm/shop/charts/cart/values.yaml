@@ -1,0 +1,36 @@
+strategytype: RollingUpdate
+
+replicas: 2
+image:
+  repository: robotshop/rs-cart
+  tag: "2.1.0"
+  pullPolicy: IfNotPresent
+  
+ports:
+  containerPort: 8080
+
+probes:
+  path: /actuator/health
+  port: 8080
+
+service:
+  type: ClusterIP
+  port: 8080
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  cpuUtilization: 70
+  memoryUtilization: 80
+
+networkPolicy:
+  enabled: true
+  ingress:
+    allowedApps:
+      - web
+      - shipping
+      - payment
+  egress:
+    redisPort: 6379
+    cataloguePort: 8080

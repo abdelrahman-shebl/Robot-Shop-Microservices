@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}
+  labels:
+    app: {{ .Chart.Name }}
+    env: production
+    version: v2.1.0
+    tier: backend
+  annotations:  
+    maintainer: "Double Abdelrahman"
+    description: "Service for Robot Shop Cart Service"
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    app: {{ .Chart.Name }}
+  ports:
+  - name: http
+    port: {{ .Values.service.port }}
+    targetPort: {{ .Values.ports.containerPort }}
