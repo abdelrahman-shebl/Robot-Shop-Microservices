@@ -19,7 +19,7 @@ spec:
           app: user
     ports:
     - protocol: TCP
-      port: 8080
+      port: 27017
   egress:
   - to:
     - namespaceSelector:
@@ -36,3 +36,4 @@ spec:
       port: 53
 
   
+
