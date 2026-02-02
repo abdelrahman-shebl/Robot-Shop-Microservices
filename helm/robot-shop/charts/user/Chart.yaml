@@ -1,0 +1,11 @@
+apiVersion: v2
+name: user
+description: user service for robot-shop
+type: application
+version: 0.1.0
+appVersion: "2.1.0"
+
+dependencies:
+  - name: common
+    version: "0.1.0"
+    repository: "file://../_common"

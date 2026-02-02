@@ -4,6 +4,6 @@ metadata:
   name: ratings
 spec:
   selector:
-    app: php
+    app: ratings
   ports:
     - port: 80

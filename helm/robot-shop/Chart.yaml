@@ -1,0 +1,49 @@
+apiVersion: v2
+name: robot-shop
+description: A microservices e-commerce application
+type: application
+version: 1.0.0
+appVersion: "2.1.0"
+
+keywords:
+  - microservices
+  - e-commerce
+  - kubernetes
+
+dependencies:
+  # Library chart (templates)
+  - name: common
+    version: "0.1.0"
+    repository: "file://./charts/_common"
+
+  # External chart
+  - name: redis
+    version: "18.x.x"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: redis.enabled
+
+  # Service charts
+  - name: user
+    version: "0.1.0"
+    repository: "file://./charts/user"
+    condition: user.enabled
+
+  - name: web
+    version: "0.1.0"
+    repository: "file://./charts/web"
+    condition: web.enabled
+
+  - name: mysql
+    version: "0.1.0"
+    repository: "file://./charts/mysql"
+    condition: mysql.enabled
+
+  - name: ratings
+    version: "0.1.0"
+    repository: "file://./charts/ratings"
+    condition: ratings.enabled
+
+  - name: dispatch
+    version: "0.1.0"
+    repository: "file://./charts/dispatch"
+    condition: dispatch.enabled
