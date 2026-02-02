@@ -1,0 +1,25 @@
+{{- define "common.NetworkPolicy" -}}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.name }}-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Values.name }} 
+  {{- if .Values.NetworkPolicy.policyTypes }}
+  policyTypes:
+    {{- toYaml .Values.NetworkPolicy.policyTypes | nindent 4 }}
+  {{- end }}
+
+  {{- if .Values.NetworkPolicy.ingress }}
+  ingress:
+  {{- toYaml .Values.NetworkPolicy.ingress | nindent 4 }}
+  {{- end }}
+
+  {{- if .Values.NetworkPolicy.egress }}
+  egress:
+  {{- toYaml .Values.NetworkPolicy.egress | nindent 4 }}
+  {{- end }}
+
+{{- end -}}
