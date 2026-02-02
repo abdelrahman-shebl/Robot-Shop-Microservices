@@ -14,7 +14,7 @@ spec:
   selector:
     matchLabels:
       app: mongo 
-  serviceName: "mongo"
+  serviceName: "mongodb"
   replicas: 3 
   template:
     metadata:
@@ -43,3 +43,4 @@ spec:
       resources:
         requests:
           storage: 200Mi          
+
