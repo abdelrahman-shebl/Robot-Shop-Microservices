@@ -39,13 +39,15 @@ spec:
           capabilities:
             add:
               - NET_ADMIN
-        image:  robotshop/rs-mysql-db:2.1.0
+            drop:
+              - ALL
+        image:  robotshop/rs-mysql-db:2.1.0          
         envFrom:
           - secretRef:
               name: mysql-secrets
         ports:
         - containerPort: 3306
-
+        
         volumeMounts:
         - name: mysql-data
           mountPath: /var/lib/mysql/

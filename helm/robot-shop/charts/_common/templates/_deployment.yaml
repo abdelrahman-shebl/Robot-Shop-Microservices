@@ -1,0 +1,78 @@
+{{- define "common.deployment" -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.name }}-deployment
+  labels:
+    app: {{ .Values.name }}
+    tier: {{ .Values.tier }}
+spec:
+  
+  selector:
+    matchLabels:
+      app: {{ .Values.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.name }}
+        tier: {{ .Values.tier }}
+    spec:
+      
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 2000
+        fsGroup: 3000
+        seccompProfile:         
+          type: RuntimeDefault
+
+      containers:
+      - name: {{ .Values.name }}
+        image: "{{ .Values.image.repository }}/{{ .Values.image.name }}:{{ .Values.image.version }}"
+        imagePullPolicy: IfNotPresent
+        {{- if or .Values.env .Values.envFromSecrets }}
+        env:
+        {{- range $key, $val := .Values.env }} # here the for loop is much helper because it parses the same format of k8s in the env and not to put it as plain text
+            - name: {{ $key }}
+              value: {{ $val | quote}}
+        {{- end }}
+        {{- if .Values.envFromSecrets }}
+        {{- toYaml .Values.envFromSecrets | nindent 10 }}
+        {{- end }}
+
+        {{- end }}
+        
+        {{- if .Values.envfrom  }}
+        envfrom:
+        {{- toYaml .Values.envfrom | nindent 8 }} # while here the toYaml function is much helper as it takes values from the values.yaml directly and Converts structure to YAML so to choose between them first know how your values are formated and then choose between loop or toYaml
+        {{- end }}
+          
+        {{- if .Values.resources }}       
+        resources:
+        {{- toYaml .Values.resources | nindent 10 }}
+        {{- end }}
+
+        {{- if .Values.livenessProbe }}
+        {{- toYaml .Values.livenessProbe | nindent 10 }}
+        {{- end }}
+
+        {{- if .Values.readinessProbe }}
+        {{- toYaml .Values.readinessProbe | nindent 10 }}
+        {{- end }}
+         
+         
+        {{- if .Values.port }}
+        ports:
+        - containerPort: {{ .Values.port }}
+        {{- end }}
+
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            {{- if .Values.capabilities.add }}
+            add:
+              {{- toYaml .Values.capabilities.add | nindent 14 }}
+            {{- end }}
+            drop:
+              - ALL
+{{- end -}}
