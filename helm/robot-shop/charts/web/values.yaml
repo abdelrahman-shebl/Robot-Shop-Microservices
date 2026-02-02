@@ -1,0 +1,103 @@
+name: web
+tier: frontend
+image:
+  repository: robotshop
+  name: rs-web
+  version: 2.1.0
+port: 8080
+
+resources:
+  requests:
+    cpu: "350m"
+    memory: "200Mi"
+  limits:
+    cpu: "700m"
+    memory: "400Mi" 
+    
+
+livenessProbe:
+  httpGet:
+    path: /nginx_status
+    port: 8080
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /nginx_status
+    port: 8080
+  initialDelaySeconds: 10
+  periodSeconds: 5
+
+service:   
+  port: 8080
+
+ingress:
+  host: shebl.com
+
+hpa:
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPU: 70
+  targetMemory: 80 
+
+networkPolicy:
+  policyTypes:
+    - Ingress
+    - Egress
+    
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: ingress 
+    ports:
+    - protocol: TCP
+      port: 8080
+
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+      
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+
+  - to:
+    - podSelector:
+        matchLabels:
+          app: catalogue
+
+    - podSelector:
+        matchLabels:
+          app: user
+
+    - podSelector:
+        matchLabels:
+          app: cart
+
+    - podSelector:
+        matchLabels:
+          app: shipping
+
+    - podSelector:
+        matchLabels:
+          app: payment
+    ports:
+    - protocol: TCP
+      port: 8080
+
+  - to:
+    - podSelector:
+        matchLabels:
+          app: php
+    ports:
+    - protocol: TCP
+      port: 80

@@ -1,0 +1,52 @@
+## Redis Values
+redis:
+  fullnameOverride: redis
+
+  auth:
+    enabled: false
+
+  architecture: replication
+  commonLabels:
+    tier: database
+    app: redis
+
+  master:
+    persistence:
+      enabled: true
+      size: 200Mi
+      
+  replica:
+    replicaCount: 3
+    persistence:
+      enabled: true
+      size: 200Mi
+
+  networkPolicy:
+    enabled: true
+    extraIngress: 
+    - from:
+      - podSelector:
+          matchLabels:
+            app: user
+
+      - podSelector:
+          matchLabels:
+            app: cart 
+      
+      ports:
+      - protocol: TCP
+        port: 6379  
+    extraEgress: 
+    - to:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: kube-system
+        podSelector:
+          matchLabels:
+            k8s-app: kube-dns
+        
+      ports:
+      - protocol: TCP
+        port: 53
+      - protocol: UDP
+        port: 53

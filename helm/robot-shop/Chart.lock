@@ -1,0 +1,24 @@
+dependencies:
+- name: common
+  repository: file://./charts/_common
+  version: 0.1.0
+- name: redis
+  repository: https://charts.bitnami.com/bitnami
+  version: 18.19.4
+- name: user
+  repository: file://./charts/user
+  version: 0.1.0
+- name: web
+  repository: file://./charts/web
+  version: 0.1.0
+- name: mysql
+  repository: file://./charts/mysql
+  version: 0.1.0
+- name: ratings
+  repository: file://./charts/ratings
+  version: 0.1.0
+- name: dispatch
+  repository: file://./charts/dispatch
+  version: 0.1.0
+digest: sha256:6a1165de896cc0af77fb883d195996dbfdbd68a1edcc20e86ee4a16691b0d58b
+generated: "2026-02-02T09:54:25.885097375+02:00"

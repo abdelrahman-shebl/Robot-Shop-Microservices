@@ -1,0 +1,19 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your release is named {{ .Release.Name }}.
+
+To check the deployment status:
+  kubectl get all -n {{ .Release.Namespace }}
+
+Services deployed:
+- User service
+- Web frontend
+- MySQL database
+- Ratings service
+- Dispatch service
+- And more...
+
+To access the application:
+  kubectl port-forward -n {{ .Release.Namespace }} svc/web 8080:8080
+
+Then visit: http://localhost:8080
