@@ -1,11 +1,11 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-cart-traffic
+  name: allow-mongodb-traffic
 spec:
   podSelector:
     matchLabels:
-      app: cart
+      app: mongo
   policyTypes:
   - Ingress
   - Egress
@@ -34,4 +34,5 @@ spec:
       port: 53
     - protocol: UDP
       port: 53
+
   
