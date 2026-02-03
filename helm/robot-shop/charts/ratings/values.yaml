@@ -44,6 +44,7 @@ Resources:
     
 service:   
   port: 80
+  name: ratings
 
 hpa:
   minReplicas: 1

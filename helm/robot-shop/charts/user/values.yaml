@@ -42,6 +42,7 @@ Resources:
     
 service:   
   port: 8080
+  name: user
 
 hpa:
   minReplicas: 1
