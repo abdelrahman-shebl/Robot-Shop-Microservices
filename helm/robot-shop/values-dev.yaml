@@ -1,0 +1,91 @@
+default_dev_apis_values: &dev_apis_values
+  resources:
+    requests:
+      cpu: "50m"                 
+      memory: "64Mi"
+    limits:
+      cpu: "200m"
+      memory: "128Mi"
+  
+  hpa:
+    minReplicas: 1
+    maxReplicas: 2   
+
+storage_spec: &storage_spec
+  accessModes: [ "ReadWriteOnce" ]
+  resources:
+    requests:
+      storage: 200Mi
+
+user:
+  
+  <<: *dev_apis_values
+web:
+
+  <<: *dev_apis_values
+  ingress:
+    host: shebl.com
+
+shipping:
+  
+  <<: *dev_apis_values
+
+
+ratings:
+  <<: *dev_apis_values
+
+
+payment:
+  <<: *dev_apis_values
+
+dispatch:
+  <<: *dev_apis_values
+
+
+catalogue:
+  <<: *dev_apis_values
+
+cart:
+  <<: *dev_apis_values
+
+mysql:
+  replicas: 1
+
+  volumeMounts:
+  - name: mysql-data
+    mountPath: /var/lib/mysql/
+
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-data
+    spec:
+      <<: *storage_spec
+
+mongodb:
+  replicas: 1
+  
+  volumeMounts:
+  - name: mongo-data
+    mountPath: /var/lib/mongodb/
+
+  volumeClaimTemplates:
+  - metadata:
+      name: mongo-data
+    spec:
+      <<: *storage_spec
+
+
+redis:
+  master:
+    persistence:
+      enabled: true
+      size: 200Mi
+      
+  replica:
+    replicaCount: 3
+    persistence:
+      enabled: true
+      size: 200Mi
+
+
+# from Shebl to Ayman: write your rabitmq values so I can add them here in dev-values :)
