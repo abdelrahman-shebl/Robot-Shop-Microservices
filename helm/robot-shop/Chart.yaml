@@ -22,6 +22,11 @@ dependencies:
     repository: "https://charts.bitnami.com/bitnami"
     condition: redis.enabled
 
+  - name: rabbitmq
+    version: "8.x.x"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: rabbitmq.enabled
+
   # Service charts
   - name: user
     version: "0.1.0"
@@ -47,3 +52,28 @@ dependencies:
     version: "0.1.0"
     repository: "file://./charts/dispatch"
     condition: dispatch.enabled
+
+  - name: cart 
+    version: "0.1.0"
+    repository: "file://./charts/cart"
+    condition: cart.enabled
+
+  - name: catalogue
+    version: "0.1.0"
+    repository: "file://./charts/catalogue"
+    condition: catalogue.enabled
+    
+  - name: mongodb
+    version: "2.1.0"  
+    repository: "file://./charts/mongodb"
+    condition: mongodb.enabled
+  
+  - name: shipping
+    version: "0.1.0"
+    repository: "file://./charts/shipping"
+    condition: shipping.enabled
+
+  - name: payment
+    version: "0.1.0"
+    repository: "file://./charts/payment"
+    condition: payment.enabled

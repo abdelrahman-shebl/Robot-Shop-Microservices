@@ -31,6 +31,7 @@ readinessProbe:
 
 service:   
   port: 8080
+  name: web
 
 ingress:
   host: shebl.com
