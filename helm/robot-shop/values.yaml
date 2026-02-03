@@ -1,5 +1,5 @@
-## Redis Values
 redis:
+  enabled: true
   fullnameOverride: redis
 
   auth:
@@ -50,3 +50,36 @@ redis:
         port: 53
       - protocol: UDP
         port: 53
+
+user:
+  enabled: true
+
+web:
+  enabled: true
+
+mysql:
+  enabled: true
+
+ratings:
+  enabled: true
+  
+dispatch:
+  enabled: true
+
+shipping:
+  enabled: true
+
+payment:
+  enabled: true
+
+catalogue:
+  enabled: true
+
+cart:
+  enabled: true
+
+mongodb:
+  enabled: true
+
+rabbitmq:
+  enabled: true
