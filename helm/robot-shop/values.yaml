@@ -54,6 +54,7 @@ redis:
 # rabbitmq values
 rabbitmq:
   enabled: true
+  fullnameOverride: rabbitmq
 
   replicaCount: 3
 
