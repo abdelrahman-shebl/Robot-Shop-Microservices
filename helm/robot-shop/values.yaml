@@ -63,10 +63,6 @@ rabbitmq:
     tag: 3.8-management-alpine
     pullPolicy: IfNotPresent
 
-  auth:
-    username: robot
-    password: robot123
-
   service:
     type: ClusterIP
     ports:
