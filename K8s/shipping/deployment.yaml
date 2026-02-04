@@ -39,7 +39,7 @@ spec:
             value: shipping
           - name: MYSQL_DATABASE
             value: cities
-          - name: MONGO_PASSWORD
+          - name: MYSQL_PASSWORD
             valueFrom:
               secretKeyRef:
                 key: SHIPPING_MYSQL_PASSWORD

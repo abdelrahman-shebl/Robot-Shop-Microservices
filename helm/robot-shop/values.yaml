@@ -50,3 +50,137 @@ redis:
         port: 53
       - protocol: UDP
         port: 53
+
+# RabbitMQ Values
+rabbitmq:
+  enabled: true
+
+  replicaCount: 3
+
+  image:
+    repository: rabbitmq
+    tag: 3.8-management-alpine
+    pullPolicy: IfNotPresent
+
+  auth:
+    username: robot
+    password: robot123
+
+  service:
+    type: ClusterIP
+    ports:
+      amqp: 5672
+      manager: 15672
+
+  persistence:
+    enabled: true
+    accessModes:
+      - ReadWriteOnce
+    size: 200Mi
+
+  commonLabels:
+    app: rabbitmq
+    env: production
+    version: v2.1.0
+    tier: message-queue
+
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+  networkPolicy:
+    enabled: true
+
+
+
+kube-prometheus-stack:
+  enabled: true
+
+  prometheus:
+    ingress:
+      enabled: true # Enable ingress for Prometheus
+      ingressClassName: traefik # Set to ingress class, e.g., nginx, traefik, etc.
+      hosts:
+        - prometheus.yourdomain.com 
+
+    prometheusSpec:
+      serviceMonitorSelectorNilUsesHelmValues: false # Select all ServiceMonitors in the cluster, regardless of labels. In production, consider using specific labels to select only relevant monitors.
+      serviceMonitorNamespaceSelector: {} # Select all namespaces
+
+      podMonitorSelectorNilUsesHelmValues: false # Select all ServiceMonitors and PodMonitors in the cluster, regardless of labels. In production, consider using specific labels to select only relevant monitors.
+      podMonitorNamespaceSelector: {} # Select all namespaces
+
+      replicas: 1 # For testing, use 1 replica. In production, consider 2 or more for high availability.
+      retention: 12h # for testing, set to 12 hours. In production, consider 15d or more.
+      retentionSize: 1GB # limit total storage to 1GB for testing. In production, consider 10GB or more.
+
+      storageSpec: # Use volumeClaimTemplate for dynamic provisioning
+        volumeClaimTemplate:
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 5Gi
+
+      externalUrl: https://prometheus.yourdomain.com # Set external URL for Prometheus, important for correct links in the UI and alertmanager notifications
+
+  grafana:
+    adminUser: admin # Grafana admin username
+    adminPassword: admin # Grafana admin password
+
+    ingress:
+      enabled: true
+      ingressClassName: traefik # Set to ingress class, e.g., nginx, traefik, etc.
+      hosts:
+        - grafana.yourdomain.com
+
+    defaultDashboardsEnabled: false
+    dashboards:
+      default:
+        # Node Exporter Full
+        node-exporter:
+          gnetId: 1860 # Node Exporter Full dashboard
+          revision: 31
+          datasource: Prometheus
+        
+        # Kubernetes Cluster Monitoring
+        k8s-cluster:
+          gnetId: 7249 # Kubernetes Cluster Monitoring dashboard
+          revision: 1
+          datasource: Prometheus
+        
+        # MySQL Overview
+        mysql-overview:
+          gnetId: 7362 # MySQL Overview dashboard
+          revision: 1
+          datasource: Prometheus
+        
+        # MongoDB Dashboard
+        mongodb:
+          gnetId: 2583 # MongoDB Overview dashboard
+          revision: 1 # Use latest revision 
+          datasource: Prometheusط
+
+prometheus-mysql-exporter:
+  enabled: true
+  mysql:
+    host: "mysql"
+  
+  serviceMonitor:
+    enabled: true
+
+  podLabels:
+    app: mysql-exporter
+
+prometheus-mongodb-exporter:
+  enabled: true
+
+  serviceMonitor:
+    enabled: true
+
+  podLabels:
+    app: mongodb-exporter
+
+  mongodb:
+    uri: "mongodb://mongodb:27017"

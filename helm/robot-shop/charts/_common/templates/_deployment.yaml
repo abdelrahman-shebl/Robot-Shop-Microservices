@@ -6,16 +6,24 @@ metadata:
   labels:
     app: {{ .Values.name }} 
     tier: {{ .Values.tier }}
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "{{ .Values.port }}"
+    prometheus.io/path: "/actuator/prometheus"
+    maintainer: "Double Abdelrahman"
+    description: "Deployment for Robot Shop {{ .Values.name | title }} Service"
 spec:
   
   selector:
     matchLabels:
       app: {{ .Values.name }}
+      tier: {{ .Values.tier }}
   template:
     metadata:
       labels:
         app: {{ .Values.name }}
         tier: {{ .Values.tier }}
+        metrics: "true"
     spec:
       
       securityContext:
@@ -42,9 +50,9 @@ spec:
 
         {{- end }}
         
-        {{- if .Values.envfrom  }}
+        {{- if .Values.envFrom  }}
         envfrom:
-        {{- toYaml .Values.envfrom | nindent 8 }} # while here the toYaml function is much helper as it takes values from the values.yaml directly and Converts structure to YAML so to choose between them first know how your values are formated and then choose between loop or toYaml
+        {{- toYaml .Values.envFrom | nindent 8 }} # while here the toYaml function is much helper as it takes values from the values.yaml directly and Converts structure to YAML so to choose between them first know how your values are formated and then choose between loop or toYaml
         {{- end }}
           
         {{- if .Values.resources }}       

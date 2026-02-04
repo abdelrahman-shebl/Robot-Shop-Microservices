@@ -46,6 +46,9 @@ networkPolicy:
     - podSelector:
         matchLabels:
           app: ratings
+    - podSelector:
+        matchLabels:
+          app: mysql-exporter
     ports:
     - protocol: TCP
       port: 3306

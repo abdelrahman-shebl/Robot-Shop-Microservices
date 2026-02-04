@@ -43,6 +43,9 @@ networkPolicy:
     - podSelector:
         matchLabels:
           app: user
+    - podSelector:
+        matchLabels:
+          app: mongodb-exporter
     ports:
     - protocol: TCP
       port: 27017
