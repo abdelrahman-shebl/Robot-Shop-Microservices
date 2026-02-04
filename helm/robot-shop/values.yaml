@@ -51,6 +51,44 @@ redis:
       - protocol: UDP
         port: 53
 
+# rabbitmq values
+rabbitmq:
+  enabled: true
+  fullnameOverride: rabbitmq
+
+  replicaCount: 3
+
+  image:
+    repository: rabbitmq
+    tag: 3.8-management-alpine
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    ports:
+      amqp: 5672
+      manager: 15672
+
+  persistence:
+    enabled: true
+    accessModes:
+      - ReadWriteOnce
+    size: 200Mi
+
+  commonLabels:
+    app: rabbitmq
+    env: production
+    version: v2.1.0
+    tier: message-queue
+
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+  networkPolicy:
+    enabled: true
+
 user:
   enabled: true
 
