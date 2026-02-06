@@ -78,7 +78,7 @@ dependencies:
     repository: "file://./charts/payment"
     condition: payment.enabled
 
-  # monitring chart
+  # monitring charts
   - name: kube-prometheus-stack
     version: "81.4.3"
     repository: "oci://ghcr.io/prometheus-community/charts"
@@ -94,5 +94,48 @@ dependencies:
     repository: "oci://ghcr.io/prometheus-community/charts"
     condition: mongodb-exporter.enabled
 
+  # metrics chart
+  - name: metrics-server
+    repository: "https://kubernetes-sigs.github.io/metrics-server/"
+    version: "3.13.0"
+    condition: metrics-server.enabled
 
+    # traefik chart
+  - name: traefik
+    version: "39.0.0"
+    repository: "https://traefik.github.io/charts"
+    condition: traefik.enabled
+
+    # external-secrets chart
+  - name: external-secrets-operator
+    repository: "https://charts.external-secrets.io/"
+    version: "1.3.2"
+    condition: external-secrets-operator.enabled
+
+    # external-dns chart
+  - name: external-dns
+    repository: "https://kubernetes-sigs.github.io/external-dns/"
+    version: "0.20.0"
+    condition: external-dns.enabled
+
+    # karpenter chart
+  - name: karpenter
+    repository: "oci://public.ecr.aws/karpenter/karpenter"
+    version: "1.8.1"
+    condition: karpenter.enabled
+
+    # opencost chart
+  - name: opencost
+    repository: "https://opencost.github.io/opencost-helm-chart"
+    version: "2.5.5"
+    condition: opencost.enabled
+
+    # goldilocks chart
+  - name: goldilocks
+    repository: "https://charts.fairwinds.com/stable"
+    version: "10.2.0"
+    condition: goldilocks.enabled
+    
+
+    
   

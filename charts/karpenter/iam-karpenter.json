@@ -1,0 +1,104 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "KarpenterScopedInstanceProfileActions",
+            "Effect": "Allow",
+            "Action": [
+                "iam:PassRole",
+                "iam:CreateInstanceProfile",
+                "iam:TagInstanceProfile",
+                "iam:AddRoleToInstanceProfile",
+                "iam:RemoveRoleFromInstanceProfile",
+                "iam:DeleteInstanceProfile",
+                "iam:GetInstanceProfile"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "aws:ResourceTag/kubernetes.io/cluster/YOUR_CLUSTER_NAME": "owned",
+                    "aws:ResourceTag/karpenter.sh/discovery": "YOUR_CLUSTER_NAME"
+                }
+            }
+        },
+        {
+            "Sid": "KarpenterScopedEC2InstanceActions",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:RunInstances",
+                "ec2:CreateFleet",
+                "ec2:CreateLaunchTemplate"
+            ],
+            "Resource": [
+                "arn:aws:ec2:*:*:fleet/*",
+                "arn:aws:ec2:*:*:launch-template/*",
+                "arn:aws:ec2:*:*:image/*",
+                "arn:aws:ec2:*:*:security-group/*",
+                "arn:aws:ec2:*:*:subnet/*",
+                "arn:aws:ec2:*:*:volume/*",
+                "arn:aws:ec2:*:*:network-interface/*",
+                "arn:aws:ec2:*:*:instance/*",
+                "arn:aws:ec2:*:*:spot-instances-request/*"
+            ],
+            "Condition": {
+                "StringEquals": {
+                    "aws:RequestTag/kubernetes.io/cluster/YOUR_CLUSTER_NAME": "owned"
+                },
+                "StringLike": {
+                    "aws:RequestTag/karpenter.sh/nodepool": "*"
+                }
+            }
+        },
+        {
+            "Sid": "KarpenterGeneralReadActions",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:DescribeImages",
+                "ec2:DescribeInstances",
+                "ec2:DescribeInstanceTypeOfferings",
+                "ec2:DescribeInstanceTypes",
+                "ec2:DescribeLaunchTemplates",
+                "ec2:DescribeSecurityGroups",
+                "ec2:DescribeSpotPriceHistory",
+                "ec2:DescribeSubnets"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "KarpenterInstanceManagementActions",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:TerminateInstances",
+                "ec2:DeleteLaunchTemplate"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "aws:ResourceTag/kubernetes.io/cluster/YOUR_CLUSTER_NAME": "owned"
+                }
+            }
+        },
+        {
+            "Sid": "KarpenterSSMActions",
+            "Effect": "Allow",
+            "Action": "ssm:GetParameter",
+            "Resource": "arn:aws:ssm:*:*:parameter/aws/service/eks/optimized-ami/*"
+        },
+        {
+            "Sid": "KarpenterPriceListActions",
+            "Effect": "Allow",
+            "Action": "pricing:GetProducts",
+            "Resource": "*"
+        },
+        {
+            "Action": [
+                "sqs:DeleteMessage",
+                "sqs:GetQueueAttributes",
+                "sqs:GetQueueUrl",
+                "sqs:ReceiveMessage"
+            ],
+            "Effect": "Allow",
+            "Resource": "arn:aws:sqs:us-east-1:123456789012:Karpenter-Interruption-Queue"
+        }
+    ]
+}
