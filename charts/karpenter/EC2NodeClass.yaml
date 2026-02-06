@@ -1,0 +1,42 @@
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: default
+spec:
+  # 1. The IAM Role
+  # This is the role attached to the EC2 Instance (Worker Role).
+  # It must be the NAME of the role as seen in AWS Console, not the ARN.
+  role: "KarpenterNodeRole-my-cluster"
+
+  # 2. Subnet Selection
+  # How does Karpenter know which subnets to use? Tags.
+  # It will look for subnets with "karpenter.sh/discovery: my-cluster"
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: "my-cluster"
+
+  # 3. Security Group Selection
+  # Which firewall rules apply?
+  # It looks for SGs with the same tag.
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: "my-cluster"
+
+  # 4. AMI Family (Operating System)
+  # Options: AL2 (Amazon Linux 2), AL2023, Bottlerocket, Ubuntu
+  amiFamily: AL2023
+
+  # 5. Disk Configuration (Optional)
+  # If your app needs a bigger disk than the default (20GB).
+  blockDeviceMappings:
+    - deviceName: /dev/xvda
+      ebs:
+        volumeSize: 100Gi
+        volumeType: gp3
+        encrypted: true
+
+  # 6. User Data (Optional)
+  # Bash script to run on boot (e.g., installing a special agent)
+  userData: |
+    #!/bin/bash
+    echo "Hello from the new node" >> /tmp/boot.log
