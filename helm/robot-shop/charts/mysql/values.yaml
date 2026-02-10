@@ -47,7 +47,8 @@ networkPolicy:
         matchLabels:
           app: ratings
 
-    - podSelector:
+    - namespaceSelector: {}
+      podSelector:
         matchLabels:
           app: mysql-exporter
 

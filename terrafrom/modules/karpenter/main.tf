@@ -1,0 +1,108 @@
+terraform {
+  required_providers {
+    kubectl = {
+      source  = "gavinbunney/kubectl"
+    }
+    helm = {
+      source = "hashicorp/helm"
+    }
+  }
+}
+
+resource "helm_release" "karpenter" {
+  name       = "karpenter"
+  repository = "oci://public.ecr.aws/karpenter"
+  chart      = "karpenter"
+  version = "1.8.1"
+
+  namespace  = "karpenter"
+  create_namespace = true
+  values = [
+    templatefile("${path.module}/values/karpenter-values.tpl", {
+      cluster_name   = var.cluster_name
+      queue_name     = var.queue_name
+    })
+  ]
+}
+
+
+resource "kubectl_manifest" "karpenter_node_class" {
+  
+  yaml_body = <<-YAML
+      apiVersion: karpenter.k8s.aws/v1
+      kind: EC2NodeClass
+      metadata:
+        name: default
+      spec:
+
+        role: "${var.karpenter_role}"
+
+        subnetSelectorTerms:
+          - tags:
+              karpenter.sh/discovery: "${var.cluster_name}"
+
+        securityGroupSelectorTerms:
+          - tags:
+              karpenter.sh/discovery: "${var.cluster_name}"
+
+
+        amiFamily: AL2023
+
+        blockDeviceMappings:
+          - deviceName: /dev/xvda
+            ebs:
+              volumeSize: 20Gi
+              volumeType: gp3
+              encrypted: true
+
+  YAML
+
+  depends_on = [helm_release.karpenter]
+}
+
+resource "kubectl_manifest" "karpenter_node_pool" {
+  yaml_body = <<-YAML
+    apiVersion: karpenter.sh/v1
+    kind: NodePool
+    metadata:
+      name: default
+    spec:
+
+      template:
+        spec:
+          nodeClassRef:
+            group: karpenter.k8s.aws
+            kind: EC2NodeClass
+            name: default
+
+          requirements:
+            - key: kubernetes.io/arch
+              operator: In
+              values: ["amd64"]
+            
+            - key: karpenter.sh/capacity-type
+              operator: In
+              values: ["spot", "on-demand"]
+
+            - key: node.kubernetes.io/instance-type 
+              operator: In
+              values: 
+                - "t3.small"       # Cheap, good for system pods
+                - "c7i-flex.large" # Compute optimized 
+                - "m7i-flex.large" # Memory optimized 
+
+      limits:
+        cpu: 10
+        memory: 40Gi
+
+      disruption:
+
+        consolidationPolicy: WhenUnderutilized
+        
+        consolidateAfter: 30s
+        
+        expireAfter: 168h
+  YAML
+
+  depends_on = [kubectl_manifest.karpenter_node_class]
+}

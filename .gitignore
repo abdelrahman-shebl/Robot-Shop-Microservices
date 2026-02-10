@@ -3,3 +3,7 @@
 *-private.*
 vendor/
 Gopkg.lock
+*/variables.yaml
+*/.terraform*
+*/*.tfstate
+*/*.tfstate.*

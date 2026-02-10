@@ -1,0 +1,24 @@
+
+ports:
+  web:
+    redirectTo: websecure
+  websecure:
+    tls:
+      enabled: true
+      certResolver: letsencrypt
+
+service:
+  enabled: true
+  type: LoadBalancer
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: sheblabdo00@gmail.com
+      storage: /data/acme.json
+      tlsChallenge: true
+
+persistence:
+  enabled: true
+  path: /data
+  size: 128Mi

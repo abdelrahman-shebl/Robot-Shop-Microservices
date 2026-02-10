@@ -1,4 +1,4 @@
-default_dev_apis_values: &dev_apis_values
+.default_dev_apis_values: &dev_apis_values
   resources:
     requests:
       cpu: "50m"                 
@@ -11,7 +11,7 @@ default_dev_apis_values: &dev_apis_values
     minReplicas: 1
     maxReplicas: 2   
 
-storage_spec: &storage_spec
+.storage_spec: &storage_spec
   accessModes: [ "ReadWriteOnce" ]
   resources:
     requests:

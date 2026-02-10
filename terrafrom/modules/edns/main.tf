@@ -24,7 +24,7 @@ resource "aws_iam_role" "edns_role" {
 resource "aws_iam_policy" "edns-policy" {
   name = "edns-policy"
 
-  policy = file("policies/iam-EDNS.json")
+  policy = file("${path.module}/iam-EDNS.json")
 }
 resource "aws_iam_role_policy_attachment" "edns-attach" {
   role       = aws_iam_role.edns_role.name
@@ -32,7 +32,7 @@ resource "aws_iam_role_policy_attachment" "edns-attach" {
 }
 
 resource "aws_eks_pod_identity_association" "edns_pod_identity_association" {
-  cluster_name    = aws_eks_cluster.eks.name
+  cluster_name    = var.cluster_name
   namespace       = "kube-system"
   service_account = "edns-sa"
   role_arn        = aws_iam_role.edns_role.arn

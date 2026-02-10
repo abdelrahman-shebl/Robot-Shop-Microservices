@@ -25,21 +25,20 @@ spec:
           operator: In
           values: ["spot", "on-demand"]
 
-        # C. Instance Families: Only use Compute (c) or Memory (m) optimized
-        - key: karpenter.k8s.aws/instance-category
+        # C. The "Allowed List" (Your Safety Net)
+        # ONLY list the instances you are willing to spend credits on.
+        - key: node.kubernetes.io/instance-type 
           operator: In
-          values: ["c", "m"]
-
-        # D. Generation: Don't use old hardware (like c3, c4). Use gen 5 or newer.
-        - key: karpenter.k8s.aws/instance-generation
-          operator: Gt
-          values: ["4"]
+          values: 
+            - "t3.small"       # Cheap, good for system pods
+            - "c7i-flex.large" # Compute optimized 
+            - "m7i-flex.large" # Memory optimized 
 
   # 3. Global Limits (The Budget)
   # If the total cluster usage hits this, Karpenter STOPS creating nodes.
   limits:
-    cpu: 1000
-    memory: 1000Gi
+    cpu: 10
+    memory: 40Gi
 
   # 4. Disruption (The Cleaner)
   # How aggressively should Karpenter delete nodes to save money?

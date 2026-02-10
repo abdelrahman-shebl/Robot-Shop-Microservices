@@ -6,7 +6,7 @@ metadata:
     app: rabbitmq
     env: production
     version: v2.1.0
-    tier: backend
+    tier: message-queue
   annotations:  
     maintainer: "Double Abdelrahman"  
     description: "Service for Robot Shop RabbitMQ Service"

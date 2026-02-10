@@ -1,0 +1,335 @@
+
+kube-prometheus-stack:
+  fullnameOverride: "monitor"
+  enabled: true
+  prometheus:
+    service:
+      # Expose on Port 80 (so you don't need :9090 in URLs)
+      port: 80
+      targetPort: 9090
+      type: ClusterIP
+
+    ingress:
+      enabled: true
+      ingressClassName: traefik  # Change if using traefik, alb, etc.
+
+      hosts: 
+        - prometheus.yourdomain.com
+      annotations:
+        traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+      tls: 
+        - secretName: prometheus-tls
+          hosts:
+            - prometheus.yourdomain.com
+
+    prometheusSpec:
+      # 1. Scrape EVERYTHING without needing 'release' labels
+      serviceMonitorSelectorNilUsesHelmValues: false
+      
+      # 2. Search across ALL namespaces (robot-shop, default, etc.)
+      serviceMonitorNamespaceSelector: {}
+      
+      # 3. (Optional but recommended) Do the same for PodMonitors
+      podMonitorSelectorNilUsesHelmValues: false
+      podMonitorNamespaceSelector: {}
+
+      # Light/Ephemeral Settings
+      replicas: 1
+      storageSpec: {}
+      retention: 2h
+      retentionSize: 500MB
+    
+    # This is used for alert links and internal routing
+      externalUrl: https://prometheus.yourdomain.com
+
+  grafana:
+    adminUser: admin
+    adminPassword: admin
+
+    ingress:
+      enabled: true
+      ingressClassName: traefik
+      hosts:
+        - grafana.yourdomain.com
+
+      annotations:
+        traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+      tls: 
+        - secretName: grafana-tls
+          hosts:
+            - grafana.yourdomain.com
+
+
+    defaultDashboardsEnabled: false
+    dashboards:
+      default:
+        # Node Exporter Full
+        node-exporter:
+          gnetId: 1860
+          revision: 31
+          datasource: Prometheus
+        
+        # Kubernetes Cluster Monitoring
+        k8s-cluster:
+          gnetId: 7249
+          revision: 1
+          datasource: Prometheus
+        
+        # MySQL Overview
+        mysql-overview:
+          gnetId: 7362
+          revision: 1
+          datasource: Prometheus
+        
+        # MongoDB Dashboard
+        mongodb:
+          gnetId: 2583
+          revision: 1
+          datasource: Prometheus
+
+        OpenCost-Overview:
+          gnetId: 22208
+          revision: 1
+          datasource: Prometheus
+
+        OpenCost-Namespace:
+          gnetId: 22252
+          revision: 1
+          datasource: Prometheus
+
+        Kubernetes-Cost-Report:
+          gnetId: 15877
+          revision: 1
+          datasource: Prometheus
+          
+
+
+prometheus-mysql-exporter:
+  enabled: true
+  mysql:
+    host: "mysql"
+  
+  serviceMonitor:
+    enabled: true
+
+  podLabels:
+    app: mysql-exporter
+
+prometheus-mongodb-exporter:
+  enabled: true
+
+  serviceMonitor:
+    enabled: true
+
+  podLabels:
+    app: mongodb-exporter
+
+  mongodb:
+    uri: "mongodb://mongodb:27017"
+
+metrics-server:
+  enabled: true
+
+traefik:
+  enabled: true
+
+  ports:
+    web:
+      redirectTo: websecure
+    websecure:
+      tls:
+        enabled: true
+        certResolver: letsencrypt
+
+    
+
+  service:
+    enabled: true
+    type: LoadBalancer
+
+  certificatesResolvers:
+    letsencrypt:
+      acme:
+        email: sheblabdo00@gmail.com
+        storage: /data/acme.json
+        tlsChallenge: true
+
+  persistence:
+    enabled: true
+    path: /data
+    size: 128Mi
+
+external-secrets-operator:
+  enabled: true
+  installCRDs: true
+
+  serviceAccount:
+    create: true
+    name: "eso-sa"
+
+external-dns:
+  enabled: true
+
+  # 1. The Provider
+  # Tell it which cloud API to talk to.
+  provider: aws
+
+  # 2. Scope (Safety Filter)
+  # CRITICAL: Only allow it to touch specific domains. 
+  domainFilters:
+    - shebl.com  # The domain you used in your Ingress
+
+  # 3. AWS Configuration
+  aws:
+    region: us-east-1
+    zoneType: public # public, private, or restricted
+
+  # 4. Synchronization Policy
+  # Options: 
+  #  - sync: Creates AND Deletes records (Full automation).
+  #  - upsert-only: Creates/Updates but NEVER deletes (Safe for beginners).
+  policy: sync
+
+  # 5. Registry (The "Owner" ID)
+  # CRITICAL: ExternalDNS creates TXT records to "mark" which records it owns.
+  # This prevents it from deleting records created by other clusters or Terraform.
+  registry: txt
+  txtOwnerId: my-eks-cluster-id # Pick a unique name for this cluster
+  txtPrefix: external-dns-
+
+  # 6. Service Account (For Pod Identity)
+  serviceAccount:
+    create: true
+    name: "edns-sa" 
+
+  # 7. What to watch?
+  # Tell it to look at Ingress (Traefik) and Services
+  sources:
+    - ingress
+    - service
+
+karpenter:
+  enabled: true
+# values.yaml
+
+  serviceAccount:
+    create: true
+    name: "karpenter-sa"
+
+  # 2. Global Settings
+  settings:
+    # The name of your EKS Cluster
+    clusterName: "my-cluster"
+
+    # The name of the SQS Queue for Spot Interruptions (Optional but recommended)
+    interruptionQueue: "Karpenter-Interruption-Queue"
+
+    # Resources (Karpenter is busy, give it space)
+    # It is critical that Karpenter does NOT run on a node it manages (Chicken & Egg).
+    # It should run on Fargate or a small static Managed Node Group.
+  controller:
+    resources:
+      requests:
+        cpu: "500m"
+        memory: 1Gi
+      limits:
+        cpu: 1
+        memory: 1Gi
+  # already exist in the default values.yaml
+  # tolerations:
+  # - key: "CriticalAddonsOnly"
+  #   operator: "Exists"
+
+  nodeSelector:
+    node-role.kubernetes.io/system: "true"
+
+opencost:
+  enabled: true
+  clusterName: "cluster.local"  # The name of your EKS Cluster
+
+  opencost:
+    cloudCost:
+      enabled: true
+    # The name of the secret you created in Step 2
+    cloudIntegrationSecret: "cloud-integration"
+    # 2. Prometheus Connection (CRITICAL)
+    # OpenCost needs to query your existing Prometheus.
+    prometheus:
+      internal:
+        enabled: false  # Don't install a new Prometheus
+      external:
+        enabled: true
+        # REPLACE this with your actual Prometheus service URL
+        # Format: http://<service-name>.<namespace>.svc.cluster.local:<port>
+        url: "http://prom-monitor-prometheus.monitoring.svc:80"
+    serviceAccount:
+      create: true
+      name: "opencost-sa"
+    ui:
+      ingress:
+        enabled: "true"
+        ingressClassName: traefik
+        annotations:
+
+        hosts:
+        - host: opencost.yourdomain.com
+
+        tls: 
+           - secretName: opencost-tls
+             hosts:
+               - opencost.yourdomain.com
+
+goldilocks:
+  enabled: true
+  # 1. Install the VPA (Crucial)
+  # Goldilocks relies on the VPA "Recommender" to do the math.
+  # If you don't have VPA installed already, set this to true.
+  vpa:
+    enabled: true
+    recommender:
+      enabled: true
+    updater:
+      enabled: false # Keep false! We only want advice, we don't want it restarting pods.
+  # 2. Controller Settings
+  controller:
+    # This flag makes Goldilocks scan EVERY namespace automatically.
+    # Without this, you must manually label every namespace "goldilocks.fairwinds.com/enabled=true"
+    flags:
+      on-by-default: true
+        # or monitor certain name spaces
+# # 1. Disable global monitoring
+#       on-by-default: false
+      
+#       # 2. Add your list here (comma-separated string)
+#       # These namespaces will be monitored AUTOMATICALLY without labels.
+#       include-namespaces: "backend,frontend,payments-service,redis"
+
+  # 3. Dashboard (The UI)
+  dashboard:
+    enabled: true
+    replicaCount: 1
+    service:
+      type: ClusterIP
+      port: 80
+  # Exclude system pods that you can't really change anyway
+    excludeContainers: "linkerd-proxy,istio-proxy,aws-node,kube-proxy"
+
+  # 4. Ingress (Expose via Traefik)
+    ingress:
+      enabled: true
+      ingressClassName: traefik
+      annotations:
+        # Use the Let's Encrypt resolver we set up in Traefik earlier
+        traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+      hosts:
+        - host: goldilocks.shebl.com
+      tls:
+        - secretName: goldilocks-tls
+          hosts:
+            - goldilocks.shebl.com
+
+  # 5. Resources (Good defaults for production)
+    resources:
+      requests:
+        cpu: 50m
+        memory: 256Mi
