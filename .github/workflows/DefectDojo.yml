@@ -1,0 +1,47 @@
+name: Defect-Dojo-Upload
+on:
+  workflow_dispatch: 
+
+jobs:
+  bulk_upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Unified Bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: final-security-bundle 
+
+      - name: Bulk Upload to DefectDojo
+        run: |
+          # 1. Handle SAST
+          if [ -f "semgrep-reports.sarif" ]; then
+            curl -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/reimport-scan/" \  # used reimport to avoid duplicates and importing new scans each time
+              -H "Authorization: Token ${{ secrets.DEFECTDOJO_TOKEN }}" \
+              -F "scan_type=SARIF" -F "product_name=Robot-Shop-Code" -F "file=@semgrep-reports.sarif"
+          fi
+
+          # 2. Handle Secrets
+          if [ -f "gitleaks-reports.sarif" ]; then
+            curl -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/reimport-scan/" \
+              -H "Authorization: Token ${{ secrets.DEFECTDOJO_TOKEN }}" \
+              -F "scan_type=Gitleaks Scan" -F "product_name=Robot-Shop-Secrets" -F "file=@gitleaks-reports.sarif"
+          fi
+
+          # 3. Handle All Image Scans (The Package approach)
+          # This loop automatically finds every image report in the bundle
+          for report in *-reports.sarif; do
+            if [[ "$report" != "semgrep-reports.sarif" && "$report" != "gitleaks-reports.sarif" ]]; then
+              APP_NAME=$(echo $report | cut -d'-' -f1)
+              curl -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/reimport-scan/" \
+                -H "Authorization: Token ${{ secrets.DEFECTDOJO_TOKEN }}" \
+                -F "scan_type=SARIF" -F "product_name=Image-$APP_NAME" -F "file=@$report"
+            fi
+          done
+
+          # 4. Handle DAST
+          if [ -f "zap_report.html" ]; then
+             # Note: DefectDojo requires 'ZAP Scan' type for ZAP reports
+             curl -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/reimport-scan/" \
+              -H "Authorization: Token ${{ secrets.DEFECTDOJO_TOKEN }}" \
+              -F "scan_type=ZAP Scan" -F "product_name=Robot-Shop-Web" -F "file=@zap_report.html"
+          fi

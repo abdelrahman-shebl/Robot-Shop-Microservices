@@ -1,3 +1,7 @@
+.image: &tag 
+  repository: shebl22
+  version: latest
+
 redis:
   enabled: true
   fullnameOverride: redis
@@ -67,7 +71,6 @@ rabbitmq:
   commonLabels:
     app: rabbitmq
     env: production
-    version: v2.1.0
     tier: message-queue
 
   networkPolicy:
@@ -101,29 +104,54 @@ rabbitmq:
 user:
   enabled: true
 
+  image:
+    
+    <<: *tag
+
 web:
   enabled: true
+  image:
+    
+    <<: *tag
 
 mysql:
   enabled: true
+  image:
+    
+    <<: *tag
 
 ratings:
   enabled: true
-  
+  image:
+    
+    <<: *tag
 dispatch:
   enabled: true
-
+  image:
+    
+    <<: *tag
 shipping:
   enabled: true
-
+  image:
+    
+    <<: *tag
 payment:
   enabled: true
-
+  image:
+    
+    <<: *tag
 catalogue:
   enabled: true
-
+  image:
+    
+    <<: *tag
 cart:
   enabled: true
-
+  image:
+    
+    <<: *tag
 mongodb:
   enabled: true
+  image:
+    
+    <<: *tag

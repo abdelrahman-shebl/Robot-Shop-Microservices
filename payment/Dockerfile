@@ -12,11 +12,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     INSTANA_SERVICE_NAME=payment
 
-# Install system dependencies required for building uWSGI
+# Install system dependencies required for building uWSGI and curl for health checks
 # We use a single RUN command to install, build, and cleanup to keep the layer small
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     gcc \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .

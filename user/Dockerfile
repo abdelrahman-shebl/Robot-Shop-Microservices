@@ -2,8 +2,8 @@ FROM node:18-alpine
 
 ENV INSTANA_AUTO_PROFILE true
 
-# Create non-root user with specific UID/GID
-RUN addgroup -g 2000 appuser && adduser -u 1000 -G appuser -s /sbin/nologin -D appuser
+# Install curl for health checks
+RUN apk add --no-cache curl
 
 EXPOSE 8080
 
@@ -15,9 +15,6 @@ RUN npm install
 
 COPY server.js /opt/server/
 
-# Fix ownership of app directory
-RUN chown -R appuser:appuser /opt/server
-
-USER appuser
+USER node
 
 CMD ["node", "server.js"]
