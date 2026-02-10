@@ -31,12 +31,6 @@ spec:
   blockDeviceMappings:
     - deviceName: /dev/xvda
       ebs:
-        volumeSize: 100Gi
+        volumeSize: 8Gi
         volumeType: gp3
         encrypted: true
-
-  # 6. User Data (Optional)
-  # Bash script to run on boot (e.g., installing a special agent)
-  userData: |
-    #!/bin/bash
-    echo "Hello from the new node" >> /tmp/boot.log

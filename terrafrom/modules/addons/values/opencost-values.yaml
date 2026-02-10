@@ -1,0 +1,33 @@
+
+clusterName: "cluster.local"  # The name of your EKS Cluster
+
+opencost:
+  cloudCost:
+    enabled: true
+  cloudIntegrationSecret: ""
+  # 2. Prometheus Connection (CRITICAL)
+  # OpenCost needs to query your existing Prometheus.
+  prometheus:
+    internal:
+      enabled: false  # Don't install a new Prometheus
+    external:
+      enabled: true
+      # REPLACE this with your actual Prometheus service URL
+      # Format: http://<service-name>.<namespace>.svc.cluster.local:<port>
+      url: "http://prom-monitor-prometheus.monitoring.svc:80"
+  serviceAccount:
+    create: true
+    name: "opencost-sa"
+  ui:
+    ingress:
+      enabled: "true"
+      ingressClassName: traefik
+      annotations:
+
+      hosts:
+      - ""
+
+      tls: 
+          - secretName: opencost-tls
+            hosts:
+              - ""

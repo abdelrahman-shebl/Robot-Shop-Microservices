@@ -1,3 +1,0 @@
-readniess probes
-network-policies
-resources-evaluation

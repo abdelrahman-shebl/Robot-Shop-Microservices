@@ -1,0 +1,101 @@
+fullnameOverride: "monitor"
+prometheus:
+  service:
+    # Expose on Port 80 (so you don't need :9090 in URLs)
+    port: 80
+    targetPort: 9090
+    type: ClusterIP
+
+  ingress:
+    enabled: true
+    ingressClassName: traefik  # Change if using traefik, alb, etc.
+
+    hosts: 
+      - ""
+    annotations:
+      traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+    tls: 
+      - secretName: prometheus-tls
+        hosts:
+          - ""
+
+  prometheusSpec:
+    # 1. Scrape EVERYTHING without needing 'release' labels
+    serviceMonitorSelectorNilUsesHelmValues: false
+    
+    # 2. Search across ALL namespaces (robot-shop, default, etc.)
+    serviceMonitorNamespaceSelector: {}
+    
+    # 3. (Optional but recommended) Do the same for PodMonitors
+    podMonitorSelectorNilUsesHelmValues: false
+    podMonitorNamespaceSelector: {}
+
+    # Light/Ephemeral Settings
+    replicas: 1
+    storageSpec: {}
+    retention: 2h
+    retentionSize: 500MB
+  
+  # This is used for alert links and internal routing
+    externalUrl: ""
+
+grafana:
+  adminUser: admin
+  adminPassword: admin
+
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hosts:
+      - ""
+
+    annotations:
+      traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+    tls: 
+      - secretName: grafana-tls
+        hosts:
+          - ""
+
+
+  defaultDashboardsEnabled: false
+  dashboards:
+    default:
+      # Node Exporter Full
+      node-exporter:
+        gnetId: 1860
+        revision: 31
+        datasource: Prometheus
+      
+      # Kubernetes Cluster Monitoring
+      k8s-cluster:
+        gnetId: 7249
+        revision: 1
+        datasource: Prometheus
+      
+      # MySQL Overview
+      mysql-overview:
+        gnetId: 7362
+        revision: 1
+        datasource: Prometheus
+      
+      # MongoDB Dashboard
+      mongodb:
+        gnetId: 2583
+        revision: 1
+        datasource: Prometheus
+
+      OpenCost-Overview:
+        gnetId: 22208
+        revision: 1
+        datasource: Prometheus
+
+      OpenCost-Namespace:
+        gnetId: 22252
+        revision: 1
+        datasource: Prometheus
+
+      Kubernetes-Cost-Report:
+        gnetId: 15877
+        revision: 1
+        datasource: Prometheus
+        

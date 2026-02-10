@@ -1,0 +1,252 @@
+.repo: &repo_link
+  repoURL: https://github.com/abdelrahman-shebl/Robot-Shop-Microservices.git
+  targetRevision: "infra-charts"
+  ref: repo
+
+.argo_defaults: &argo
+    namespace: argocd
+    project: default
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+
+applications:
+
+  metrics-server:
+    <<: *argo
+    source:
+      chart: metrics-server
+      repoURL: https://kubernetes-sigs.github.io/metrics-server/
+      targetRevision: "3.13.0"
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-4"
+    destination:
+      namespace: kube-system
+      server: https://kubernetes.default.svc
+    
+
+  traefik:
+    <<: *argo
+    sources:
+      - chart: traefik
+        repoURL: https://traefik.github.io/charts
+        targetRevision: "39.0.0"
+        helm:
+          valueFiles:
+            - $repo/terraform/modules/addons/values/traefik-values.yaml
+
+      - <<: *repo_link
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-4"
+    destination:
+      namespace: traefik
+      server: https://kubernetes.default.svc
+
+  external-dns:
+    <<: *argo
+    sources:
+      - chart: external-dns
+        repoURL: https://kubernetes-sigs.github.io/external-dns/
+        targetRevision: "0.20.0"
+        helm:
+          valueFiles:
+            - $repo/terraform/modules/addons/values/edns-values.yaml
+            # "Surgical" Overrides
+          parameters:
+            - name: "domainFilters[0]"
+              value: "${domain}"
+            - name: "aws.region"
+              value: "${region}"
+            - name: "txtOwnerId"
+              value: "${cluster_name}"
+
+      - <<: *repo_link
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-4"
+    destination:
+      namespace: edns
+      server: https://kubernetes.default.svc
+
+  kube-prometheus-stack:
+    <<: *argo
+    sources:
+      - chart: kube-prometheus-stack
+        repoURL: oci://ghcr.io/prometheus-community/charts
+        targetRevision: "81.4.3"
+        helm:
+          valueFiles:
+            - $repo/terraform/modules/addons/values/prometheus-values.yaml
+            # "Surgical" Overrides
+          parameters:
+            - name: "prometheus.ingress.hosts[0]"
+              value: "prometheus.${domain}"
+            
+
+            - name: "prometheus.ingress.tls[0].hosts[0]"
+              value: "prometheus.${domain}"
+
+            - name: "prometheus.prometheusSpec.externalUrl"
+              value: "https://prometheus.${domain}"
+
+            - name: "grafana.ingress.hosts[0]"
+              value: "grafana.${domain}"
+
+            - name: "grafana.ingress.tls[0].hosts[0]"
+              value: "grafana.${domain}"
+                                      
+
+      - <<: *repo_link
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-3"
+    destination:
+      namespace: monitoring
+      server: https://kubernetes.default.svc
+
+  prometheus-mysql-exporter:
+    <<: *argo
+    sources:
+      - chart: prometheus-mysql-exporter
+        repoURL: oci://ghcr.io/prometheus-community/charts
+        targetRevision: "2.12.0"
+        helm:
+          valueFiles:
+            - $repo/terraform/modules/addons/values/prometheus-mysql-values.yaml
+      - <<: *repo_link
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-2"
+    destination:
+      namespace: monitoring
+      server: https://kubernetes.default.svc
+
+  prometheus-mongodb-exporter:
+    <<: *argo
+    sources:
+      - chart: prometheus-mongodb-exporter
+        repoURL: oci://ghcr.io/prometheus-community/charts
+        targetRevision: "3.13.0"
+        helm:
+          valueFiles:
+            - $repo/terraform/modules/addons/values/prometheus-mongo-values.yaml
+      - <<: *repo_link
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-2"
+    destination:
+      namespace: monitoring
+      server: https://kubernetes.default.svc
+
+  external-secrets-operator:
+    <<: *argo
+    sources:
+      - chart: external-secrets-operator
+        repoURL: https://charts.external-secrets.io/
+        targetRevision: "1.3.2"
+        helm:
+          valueFiles:
+            - $repo/terraform/modules/addons/values/eso-values.yaml
+      - <<: *repo_link
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-2"
+    destination:
+      namespace: eso
+      server: https://kubernetes.default.svc
+
+  external-secrets-manifests:
+    <<: *argo
+    source:
+      path: K8s/eso
+      repoURL: https://github.com/abdelrahman-shebl/Robot-Shop-Microservices.git
+      targetRevision: "infra-charts"
+    destination:
+      namespace: eso
+      server: https://kubernetes.default.svc
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-1"
+
+
+  opencost:
+    <<: *argo
+    sources:
+      - chart: opencost
+        repoURL: https://opencost.github.io/opencost-helm-chart
+        targetRevision: "2.5.5"
+        helm:
+          valueFiles:
+            - $repo/terraform/modules/addons/values/opencost-values.yaml
+            # "Surgical" Overrides
+          parameters:
+            - name: "clusterName"
+              value: "${cluster_name}"
+
+            - name: "opencost.cloudIntegrationSecret"
+              value: "${cloudIntegrationSecret}"
+            
+            - name: "opencost.ui.ingress.hosts[0]"
+              value: "opencost.${domain}"
+
+            - name: "opencost.ui.ingress.tls[0].hosts[0]"
+              value: "opencost.${domain}"
+
+      - <<: *repo_link
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-2"
+    destination:
+      namespace: opencost
+      server: https://kubernetes.default.svc
+
+  goldilocks:
+    <<: *argo
+    sources:
+      - chart: goldilocks
+        repoURL: https://charts.fairwinds.com/stable
+        targetRevision: "10.2.0"
+        helm:
+          valueFiles:
+            - $repo/terraform/modules/addons/values/goldilocks-values.yaml
+            # "Surgical" Overrides
+          parameters:
+            - name: "clusterName"
+              value: "${cluster_name}"
+            
+            - name: "dashboard.ingress.hosts[0]"
+              value: "goldilocks.${domain}"
+
+            - name: "dashboard.ingress.tls[0].hosts[0]"
+              value: "goldilocks.${domain}"
+
+      - <<: *repo_link
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-2"
+    destination:
+      namespace: goldilocks
+      server: https://kubernetes.default.svc
+
+  robot-shop:
+    <<: *argo
+    sources:
+      - path: helm/robot-shop
+        repoURL: https://github.com/abdelrahman-shebl/Robot-Shop-Microservices.git
+        targetRevision: "infra-charts"
+        helm:
+          valueFiles:
+            - $repo/helm/robot-shop/values.yaml
+            - $repo/helm/robot-shop/values-${env}.yaml
+      - <<: *repo_link
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-1"
+    destination:
+      namespace: robotshop
+      server: https://kubernetes.default.svc

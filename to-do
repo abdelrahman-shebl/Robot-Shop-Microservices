@@ -1,0 +1,8 @@
+add robot-shop chart ./
+add eks cluster and node group and make sure to connect everything ./
+add karpenter files '/
+complete infra ./
+-> vpc
+-> subnets
+-> sg
+-> route53
