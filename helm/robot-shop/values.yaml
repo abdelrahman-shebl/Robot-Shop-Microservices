@@ -1,4 +1,4 @@
-.image: &tag
+image: &tag
   repository: shebl22
   version: latest
 redis:
@@ -88,42 +88,40 @@ rabbitmq:
 user:
   enabled: true
   image:
-    !!merge <<: *tag
+    <<: *tag
 web:
   enabled: true
   image:
-    !!merge <<: *tag
+    <<: *tag
 mysql:
   enabled: true
   image:
-    !!merge <<: *tag
+    <<: *tag
 ratings:
   enabled: true
   image:
-    !!merge <<: *tag
+    <<: *tag
 dispatch:
   enabled: true
   image:
-    !!merge <<: *tag
+    <<: *tag
 shipping:
   enabled: true
   image:
-    !!merge <<: *tag
+    <<: *tag
 payment:
   enabled: true
   image:
-    !!merge <<: *tag
+    <<: *tag
 catalogue:
   enabled: true
   image:
-    !!merge <<: *tag
+    <<: *tag
 cart:
   enabled: true
   image:
-    !!merge <<: *tag
+    <<: *tag
 mongodb:
   enabled: true
   image:
-    !!merge <<: *tag
-image:
-  version: 3ab8ccd0546e5680b9056340715fdb0a80be05cb
+    <<: *tag
