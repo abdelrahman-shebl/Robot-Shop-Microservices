@@ -1,4 +1,4 @@
-.image: &tag
+image: &tag
   repository: shebl22
   version: latest
 redis:
