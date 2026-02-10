@@ -210,7 +210,7 @@ jobs:
           git config --global user.name "github-actions[bot]"
           
           # 2. The Dynamic Update (Using the yq logic we discussed)
-          yq -i 'image.version = "${{ github.sha }}"' helm/robot-shop/values.yaml
+          yq -i -P '.image.version = "${{ github.sha }}"' helm/robot-shop/values.yaml
            
           # 3. Stage the change
           git add helm/robot-shop/values.yaml
