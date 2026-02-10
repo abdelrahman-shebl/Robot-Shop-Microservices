@@ -88,42 +88,40 @@ rabbitmq:
 user:
   enabled: true
   image:
-    !!merge <<: *tag
+    <<: *tag
 web:
   enabled: true
   image:
-    !!merge <<: *tag
+    <<: *tag
 mysql:
   enabled: true
   image:
-    !!merge <<: *tag
+    <<: *tag
 ratings:
   enabled: true
   image:
-    !!merge <<: *tag
+    <<: *tag
 dispatch:
   enabled: true
   image:
-    !!merge <<: *tag
+    <<: *tag
 shipping:
   enabled: true
   image:
-    !!merge <<: *tag
+    <<: *tag
 payment:
   enabled: true
   image:
-    !!merge <<: *tag
+    <<: *tag
 catalogue:
   enabled: true
   image:
-    !!merge <<: *tag
+    <<: *tag
 cart:
   enabled: true
   image:
-    !!merge <<: *tag
+    <<: *tag
 mongodb:
   enabled: true
   image:
-    !!merge <<: *tag
-image:
-  version: 9eaefbccd1b9d6eb7906c880cce64012cf445c97
+    <<: *tag
