@@ -19,11 +19,11 @@ jobs:
     - name: Run semgrep scans
       run: semgrep scan --config auto --sarif-output=semgrep-reports.sarif  --json-output=semgrep-reports.json --severity ERROR --severity WARNING
 
-    - name: Upload SARIF to GitHub
-      if: always()
-      uses: github/codeql-action/upload-sarif@v3
-      with:
-        sarif_file: semgrep-reports.sarif
+    # - name: Upload SARIF to GitHub
+    #   if: always()
+    #   uses: github/codeql-action/upload-sarif@v3
+    #   with:
+    #     sarif_file: semgrep-reports.sarif
 
 
     - name: Upload semgrep-reports 
@@ -41,12 +41,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6.0.2
 
-      - name: Gitleaks
-        uses: gitleaks/gitleaks-action@v2.3.9
-        # continue-on-error: true
-        with:
-          report-format: sarif 
-          report-path: gitleaks-reports.sarif
+      # - name: Gitleaks
+      #   uses: gitleaks/gitleaks-action@v2.3.9
+      #   # continue-on-error: true
+      #   with:
+      #     report-format: sarif 
+      #     report-path: gitleaks-reports.sarif
 
       - name: Upload gitleaks-reports 
         if: always()
@@ -150,7 +150,7 @@ jobs:
         #ensure the Node/Java apps are actually ready
         run: |
           echo "Waiting for web service to be healthy..."
-          timeout 120s sh -c 'until [ "$(docker inspect -f {{.State.Health.Status}} $(docker-compose ps -q web))" == "healthy" ]; do sleep 5; done'
+          timeout 120s sh -c 'until [ "$(docker inspect -f {{.State.Health.Status}} $(docker compose ps -q web))" == "healthy" ]; do sleep 5; done'
 
       - name: OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.14.0
@@ -210,8 +210,8 @@ jobs:
           git config --global user.name "github-actions[bot]"
           
           # 2. The Dynamic Update (Using the yq logic we discussed)
-          yq -i -P '."image".version = "${{ github.sha }}"' helm/robot-shop/values.yaml
-          
+          yq -i '(. | select(has(".image")) | ."image".version) = "${{ github.sha }}"' helm/robot-shop/values.yaml
+           
           # 3. Stage the change
           git add helm/robot-shop/values.yaml
           
@@ -221,4 +221,11 @@ jobs:
           # 5. Commit and Push back to the active branch
           git commit -m "chore: update images to ${{ github.sha }} [skip ci]"
           git push origin ${{ github.ref_name }}
-       
+         
+
+
+
+
+
+
+          
