@@ -1,154 +1,127 @@
-.image: &tag 
+.image: &tag
   repository: shebl22
   version: latest
-
 redis:
   enabled: true
   fullnameOverride: redis
-
   auth:
     enabled: false
-
   architecture: replication
   commonLabels:
     tier: database
     app: redis
-
   master:
     persistence:
       enabled: true
       size: 200Mi
-      
   replica:
     replicaCount: 3
     persistence:
       enabled: true
       size: 200Mi
-
   networkPolicy:
     enabled: true
-    extraIngress: 
-    - from:
-      - podSelector:
-          matchLabels:
-            app: user
-
-      - podSelector:
-          matchLabels:
-            app: cart 
-      
-      ports:
-      - protocol: TCP
-        port: 6379  
-    extraEgress: 
-    - to:
-      - namespaceSelector:
-          matchLabels:
-            kubernetes.io/metadata.name: kube-system
-        podSelector:
-          matchLabels:
-            k8s-app: kube-dns
-        
-      ports:
-      - protocol: TCP
-        port: 53
-      - protocol: UDP
-        port: 53
-        
+    extraIngress:
+      - from:
+          - podSelector:
+              matchLabels:
+                app: user
+          - podSelector:
+              matchLabels:
+                app: cart
+        ports:
+          - protocol: TCP
+            port: 6379
+    extraEgress:
+      - to:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: kube-system
+            podSelector:
+              matchLabels:
+                k8s-app: kube-dns
+        ports:
+          - protocol: TCP
+            port: 53
+          - protocol: UDP
+            port: 53
 # rabbitmq values
 rabbitmq:
   enabled: true
   fullnameOverride: rabbitmq
-
   replicaCount: 3
-
   persistence:
     enabled: true
     accessModes:
       - ReadWriteOnce
     size: 200Mi
-
   commonLabels:
     app: rabbitmq
     env: production
     tier: message-queue
-
   networkPolicy:
     enabled: true
     extraIngress:
-    - from:
-      - podSelector:
-          matchLabels:
-            app: dispatch
-      - podSelector:
-          matchLabels:
-            app: payment
-      ports:
-      - protocol: TCP
-        port: 5672
+      - from:
+          - podSelector:
+              matchLabels:
+                app: dispatch
+          - podSelector:
+              matchLabels:
+                app: payment
+        ports:
+          - protocol: TCP
+            port: 5672
     extraEgress:
-    - to:
-      - namespaceSelector:
-          matchLabels:
-            kubernetes.io/metadata.name: kube-system
-        podSelector:
-          matchLabels:
-            k8s-app: kube-dns # Allow DNS resolution 
-        
-      ports:
-      - protocol: TCP
-        port: 53
-      - protocol: UDP
-        port: 53
-
+      - to:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: kube-system
+            podSelector:
+              matchLabels:
+                k8s-app: kube-dns # Allow DNS resolution 
+        ports:
+          - protocol: TCP
+            port: 53
+          - protocol: UDP
+            port: 53
 user:
   enabled: true
-
   image:
-    
-    <<: *tag
-
+    !!merge <<: *tag
 web:
   enabled: true
   image:
-    
-    <<: *tag
-
+    !!merge <<: *tag
 mysql:
   enabled: true
   image:
-    
-    <<: *tag
-
+    !!merge <<: *tag
 ratings:
   enabled: true
   image:
-    
-    <<: *tag
+    !!merge <<: *tag
 dispatch:
   enabled: true
   image:
-    
-    <<: *tag
+    !!merge <<: *tag
 shipping:
   enabled: true
   image:
-    
-    <<: *tag
+    !!merge <<: *tag
 payment:
   enabled: true
   image:
-    
-    <<: *tag
+    !!merge <<: *tag
 catalogue:
   enabled: true
   image:
-    
-    <<: *tag
+    !!merge <<: *tag
 cart:
   enabled: true
   image:
-    
-    <<: *tag
+    !!merge <<: *tag
 mongodb:
   enabled: true
+image:
+  version: 123a40f2b8af7e484164f531bf761c544bbe2dd0
