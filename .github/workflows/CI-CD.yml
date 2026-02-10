@@ -80,7 +80,7 @@ jobs:
         with:
           load: true
           context: ${{ matrix.app }}
-          file: ${{ matrix.app }}/Docker/file
+          file: ${{ matrix.app }}/Dockerfile
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: ${{ vars.DOCKERHUB_USERNAME }}/rs-${{ matrix.app }}:${{github.sha}}
@@ -106,7 +106,7 @@ jobs:
         with:
           push: true
           context: ${{ matrix.app }}
-          file: ${{ matrix.app }}/Docker/file
+          file: ${{ matrix.app }}/Dockerfile
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: ${{ vars.DOCKERHUB_USERNAME }}/rs-${{ matrix.app }}:${{github.sha}}

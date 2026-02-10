@@ -152,3 +152,6 @@ cart:
     <<: *tag
 mongodb:
   enabled: true
+  image:
+    
+    <<: *tag
