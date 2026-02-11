@@ -8,191 +8,190 @@ on:
 
 jobs:
 
-  # semgrep_scan: # SAST (static application security testing)
-  #   runs-on: ubuntu-latest
-  #   container:
-  #     image: semgrep/semgrep
-  #   steps:
-  #   - name: Checkout
-  #     uses: actions/checkout@v6.0.2
+  semgrep_scan: # SAST (static application security testing)
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6.0.2
       
-  #   - name: Run semgrep scans
-  #     run: semgrep scan --config auto --sarif-output=semgrep-reports.sarif  --json-output=semgrep-reports.json --severity ERROR --severity WARNING
+    - name: Run semgrep scans
+      run: semgrep scan --config auto --sarif-output=semgrep-reports.sarif  --json-output=semgrep-reports.json --severity ERROR --severity WARNING
 
-  #   # - name: Upload SARIF to GitHub
-  #   #   if: always()
-  #   #   uses: github/codeql-action/upload-sarif@v3
-  #   #   with:
-  #   #     sarif_file: semgrep-reports.sarif
+    # - name: Upload SARIF to GitHub
+    #   if: always()
+    #   uses: github/codeql-action/upload-sarif@v3
+    #   with:
+    #     sarif_file: semgrep-reports.sarif
 
 
-  #   - name: Upload semgrep-reports 
-  #     if: always()
-  #     uses: actions/upload-artifact@v6.0.0
-  #     with:
-  #       name: semgrep-sarif
-  #       path: "semgrep-reports*"
+    - name: Upload semgrep-reports 
+      if: always()
+      uses: actions/upload-artifact@v6.0.0
+      with:
+        name: semgrep-sarif
+        path: "semgrep-reports*"
 
-  # gitleaks_scan: # secrets scan
+  gitleaks_scan: # secrets scan
 
-  #   name: testing gitleaks
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v6.0.2
+    name: testing gitleaks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
 
-  #     # - name: Gitleaks
-  #     #   uses: gitleaks/gitleaks-action@v2.3.9
-  #     #   # continue-on-error: true
-  #     #   with:
-  #     #     report-format: sarif 
-  #     #     report-path: gitleaks-reports.sarif
+      # - name: Gitleaks
+      #   uses: gitleaks/gitleaks-action@v2.3.9
+      #   # continue-on-error: true
+      #   with:
+      #     report-format: sarif 
+      #     report-path: gitleaks-reports.sarif
 
-  #     - name: Upload gitleaks-reports 
-  #       if: always()
-  #       uses: actions/upload-artifact@v6.0.0
-  #       with:
-  #         name: gitleaks
-  #         path: gitleaks-reports.sarif
+      - name: Upload gitleaks-reports 
+        if: always()
+        uses: actions/upload-artifact@v6.0.0
+        with:
+          name: gitleaks
+          path: gitleaks-reports.sarif
 
-  # image_scan: #SCA (Software Composition Analysis) of both the OS and Application layers  + Container Security
-  #     name: Image Scan
-  #     strategy:
-  #       fail-fast: false # Don't stop other scans if one app fails
-  #       matrix: 
-  #         app: [cart, mongo, payment, catalogue, dispatch, mysql, ratings, shipping, user, web ]
-  #     runs-on: ubuntu-latest
-  #     steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v6.0.2
-  #     -
-  #       name: Login to Docker Hub
-  #       uses: docker/login-action@v3
-  #       with:
-  #         username: ${{ vars.DOCKERHUB_USERNAME }}
-  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
+  image_scan: #SCA (Software Composition Analysis) of both the OS and Application layers  + Container Security
+      name: Image Scan
+      strategy:
+        fail-fast: false # Don't stop other scans if one app fails
+        matrix: 
+          app: [cart, mongo, payment, catalogue, dispatch, mysql, ratings, shipping, user, web ]
+      runs-on: ubuntu-latest
+      steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+      -
+        name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-  #     - name: Docker Setup Buildx
-  #       uses: docker/setup-buildx-action@v3.12.0
+      - name: Docker Setup Buildx
+        uses: docker/setup-buildx-action@v3.12.0
 
-  #     - name: Build Docker images
-  #       uses: docker/build-push-action@v6.18.0
-  #       with:
-  #         load: true
-  #         context: ${{ matrix.app }}
-  #         file: ${{ matrix.app }}/Dockerfile
-  #         cache-from: type=gha
-  #         cache-to: type=gha,mode=max
-  #         tags: ${{ vars.DOCKERHUB_USERNAME }}/rs-${{ matrix.app }}:${{github.sha}}
+      - name: Build Docker images
+        uses: docker/build-push-action@v6.18.0
+        with:
+          load: true
+          context: ${{ matrix.app }}
+          file: ${{ matrix.app }}/Dockerfile
+          cache-from: type=gha,scope=${{ matrix.app }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.app }}
+          tags: ${{ vars.DOCKERHUB_USERNAME }}/rs-${{ matrix.app }}:${{github.sha}}
 
-  #     - name: Docker Scout
-  #       uses: docker/scout-action@v1.18.2
-  #       with:
-  #         command: quickview, cves 
-  #         image: ${{ vars.DOCKERHUB_USERNAME }}/rs-${{ matrix.app }}:${{github.sha}}
-  #         only-severities: critical,high
-  #         sarif-file: ${{ matrix.app }}-reports.sarif
+      - name: Docker Scout
+        uses: docker/scout-action@v1.18.2
+        with:
+          command: quickview, cves 
+          image: ${{ vars.DOCKERHUB_USERNAME }}/rs-${{ matrix.app }}:${{github.sha}}
+          only-severities: critical,high
+          sarif-file: ${{ matrix.app }}-reports.sarif
           
-  #     - name: Upload a Build Artifact
-  #       if: always()
-  #       uses: actions/upload-artifact@v6.0.0
-  #       with:
-  #         name: ${{ matrix.app }}-reports
-  #         path:  ${{ matrix.app }}-reports.sarif 
+      - name: Upload a Build Artifact
+        if: always()
+        uses: actions/upload-artifact@v6.0.0
+        with:
+          name: ${{ matrix.app }}-reports
+          path:  ${{ matrix.app }}-reports.sarif 
           
 
-  #     - name: push Docker images
-  #       uses: docker/build-push-action@v6.18.0
-  #       with:
-  #         push: true
-  #         context: ${{ matrix.app }}
-  #         file: ${{ matrix.app }}/Dockerfile
-  #         cache-from: type=gha
-  #         cache-to: type=gha,mode=max
-  #         tags: ${{ vars.DOCKERHUB_USERNAME }}/rs-${{ matrix.app }}:${{github.sha}}
+      - name: push Docker images
+        uses: docker/build-push-action@v6.18.0
+        with:
+          push: true
+          context: ${{ matrix.app }}
+          file: ${{ matrix.app }}/Dockerfile
+          cache-from: type=gha,scope=${{ matrix.app }}
+          tags: ${{ vars.DOCKERHUB_USERNAME }}/rs-${{ matrix.app }}:${{github.sha}}
 
-  # dast_scan:
-  #   name: DAST Security Scan
-  #   runs-on: ubuntu-latest
-  #   needs: [image_scan]
-  #   env:
-  #     # Repository Variables
-  #     REPO: ${{ vars.DOCKERHUB_USERNAME }}
-  #     TAG: ${{ github.sha }}
+  dast_scan:
+    name: DAST Security Scan
+    runs-on: ubuntu-latest
+    needs: [image_scan]
+    env:
+      # Repository Variables
+      REPO: ${{ vars.DOCKERHUB_USERNAME }}
+      TAG: ${{ github.sha }}
       
-  #     # MongoDB Secrets (Required for Catalogue and User services)
-  #     MONGO_INITDB_ROOT_USERNAME: ${{ secrets.MONGO_INITDB_ROOT_USERNAME }}
-  #     MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}
-  #     CATALOGUE_MONGO_USER: ${{ secrets.CATALOGUE_MONGO_USER }}
-  #     CATALOGUE_MONGO_PASSWORD: ${{ secrets.CATALOGUE_MONGO_PASSWORD }}
-  #     CATALOGUE_MONGO_DATABASE: ${{ secrets.CATALOGUE_MONGO_DATABASE }}
-  #     USER_MONGO_USER: ${{ secrets.USER_MONGO_USER }}
-  #     USER_MONGO_PASSWORD: ${{ secrets.USER_MONGO_PASSWORD }}
-  #     USER_MONGO_DATABASE: ${{ secrets.USER_MONGO_DATABASE }}
+      # MongoDB Secrets (Required for Catalogue and User services)
+      MONGO_INITDB_ROOT_USERNAME: ${{ secrets.MONGO_INITDB_ROOT_USERNAME }}
+      MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}
+      CATALOGUE_MONGO_USER: ${{ secrets.CATALOGUE_MONGO_USER }}
+      CATALOGUE_MONGO_PASSWORD: ${{ secrets.CATALOGUE_MONGO_PASSWORD }}
+      CATALOGUE_MONGO_DATABASE: ${{ secrets.CATALOGUE_MONGO_DATABASE }}
+      USER_MONGO_USER: ${{ secrets.USER_MONGO_USER }}
+      USER_MONGO_PASSWORD: ${{ secrets.USER_MONGO_PASSWORD }}
+      USER_MONGO_DATABASE: ${{ secrets.USER_MONGO_DATABASE }}
       
-  #     # MySQL Secrets (Required for Shipping and Ratings services)
-  #     MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
-  #     SHIPPING_MYSQL_USER: ${{ secrets.SHIPPING_MYSQL_USER }}
-  #     SHIPPING_MYSQL_PASSWORD: ${{ secrets.SHIPPING_MYSQL_PASSWORD }}
-  #     SHIPPING_MYSQL_DATABASE: ${{ secrets.SHIPPING_MYSQL_DATABASE }}
-  #     RATINGS_MYSQL_USER: ${{ secrets.RATINGS_MYSQL_USER }}
-  #     RATINGS_MYSQL_PASSWORD: ${{ secrets.RATINGS_MYSQL_PASSWORD }}
-  #     RATINGS_MYSQL_DATABASE: ${{ secrets.RATINGS_MYSQL_DATABASE }}
+      # MySQL Secrets (Required for Shipping and Ratings services)
+      MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+      SHIPPING_MYSQL_USER: ${{ secrets.SHIPPING_MYSQL_USER }}
+      SHIPPING_MYSQL_PASSWORD: ${{ secrets.SHIPPING_MYSQL_PASSWORD }}
+      SHIPPING_MYSQL_DATABASE: ${{ secrets.SHIPPING_MYSQL_DATABASE }}
+      RATINGS_MYSQL_USER: ${{ secrets.RATINGS_MYSQL_USER }}
+      RATINGS_MYSQL_PASSWORD: ${{ secrets.RATINGS_MYSQL_PASSWORD }}
+      RATINGS_MYSQL_DATABASE: ${{ secrets.RATINGS_MYSQL_DATABASE }}
 
-  #   steps:
-  #     - name: Checkout Code
-  #       uses: actions/checkout@v4
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-  #     - name: Start Ephemeral Stack
-  #       run: docker compose up -d web
+      - name: Start Ephemeral Stack
+        run: docker compose up -d web
 
-  #     - name: Wait for Web Service Health
-  #       #ensure the Node/Java apps are actually ready
-  #       run: |
-  #         echo "Waiting for web service to be healthy..."
-  #         timeout 120s sh -c 'until [ "$(docker inspect -f {{.State.Health.Status}} $(docker compose ps -q web))" == "healthy" ]; do sleep 5; done'
+      - name: Wait for Web Service Health
+        #ensure the Node/Java apps are actually ready
+        run: |
+          echo "Waiting for web service to be healthy..."
+          timeout 120s sh -c 'until [ "$(docker inspect -f {{.State.Health.Status}} rs-web)" == "healthy" ]; do sleep 5; done'
 
-  #     - name: OWASP ZAP Baseline Scan
-  #       uses: zaproxy/action-baseline@v0.14.0
-  #       with:
-  #         target: 'http://localhost:8080'
-  #         # Passing 'fail_action: true' ensures the pipeline breaks if high-risk bugs are found
-  #         fail_action: true 
+      - name: OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: 'http://localhost:8080'
+          # Passing 'fail_action: true' ensures the pipeline breaks if high-risk bugs are found
+          fail_action: true 
 
-  #     - name: Upload DAST Report
-  #       if: always()
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: zap-dast-report
-  #         path: 'zap_report.html'
+      - name: Upload DAST Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-dast-report
+          path: 'zap_report.html'
 
-  #     - name: Cleanup Stack
-  #       if: always()
-  #       run: docker compose down -v
+      - name: Cleanup Stack
+        if: always()
+        run: docker compose down -v
 
-  # consolidate_reports:
-  #   name: Merge All Security Reports
-  #   runs-on: ubuntu-latest
-  #   needs: [image_scan, semgrep_scan, gitleaks_scan] 
-  #   if: always()
-  #   steps:
-  #     - name: Download All Individual Artifacts
-  #       uses: actions/download-artifact@v6
-  #       with:
-  #         pattern: "*-reports" 
-  #         path: all-reports    
-  #         merge-multiple: true
+  consolidate_reports:
+    name: Merge All Security Reports
+    runs-on: ubuntu-latest
+    needs: [image_scan, semgrep_scan, gitleaks_scan] 
+    if: always()
+    steps:
+      - name: Download All Individual Artifacts
+        uses: actions/download-artifact@v6
+        with:
+          pattern: "*-reports" 
+          path: all-reports    
+          merge-multiple: true
 
-  #     - name: Upload Single Unified Zip
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: final-security-bundle # This will be the ONLY zip in the UI
-  #         path: all-reports/          # Uploads the entire folder as one zip
+      - name: Upload Single Unified Zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-security-bundle # This will be the ONLY zip in the UI
+          path: all-reports/          # Uploads the entire folder as one zip
 
   update-k8s-values:
     name: update k8s versions
     runs-on: ubuntu-latest
-    # needs: [image_scan, semgrep_scan, gitleaks_scan] 
+    needs: [image_scan, semgrep_scan, gitleaks_scan] 
     if: always()
     permissions: 
       contents: write
@@ -204,12 +203,14 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update, Commit and Push
+        env:
+          NEW_VERSION: ${{ github.sha }}
         run: |
           # 1. Configuration
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
           
-          sed -i '/^image:/,/version:/ s/version: .*/version: ${{ github.sha }}/' helm/robot-shop/values.yaml
+          yq -i '.".image".version = strenv(NEW_VERSION)' helm/robot-shop/values.yaml
            
           # 3. Stage the change
           git add helm/robot-shop/values.yaml

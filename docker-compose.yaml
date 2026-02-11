@@ -1,5 +1,6 @@
 services:
   mongodb:
+    container_name: rs-mongodb
     build:
       context: mongo
     image: ${REPO}/rs-mongo:${TAG}
@@ -18,16 +19,19 @@ services:
       - data-services
 
   redis:
+    container_name: rs-redis
     image: redis:latest
     networks:
       - data-services
 
   rabbitmq:
+    container_name: rs-rabbitmq
     image: rabbitmq:3.8-management-alpine
     networks:
       - message-queue
 
   catalogue:
+    container_name: rs-catalogue
     build:
       context: catalogue
     image: ${REPO}/rs-catalogue:${TAG}
@@ -47,7 +51,8 @@ services:
       timeout: 10s
       retries: 3
 
-  user: #------#
+  user:
+    container_name: rs-user
     build:
       context: user
     image: ${REPO}/rs-user:${TAG}
@@ -69,6 +74,7 @@ services:
       retries: 3
 
   cart:
+    container_name: rs-cart
     build:
       context: cart
     image: ${REPO}/rs-cart:${TAG}
@@ -84,6 +90,7 @@ services:
       retries: 3
 
   mysql:
+    container_name: rs-mysql
     build:
       context: mysql
     image: ${REPO}/rs-mysql:${TAG}
@@ -104,6 +111,7 @@ services:
       - data-services
 
   shipping:
+    container_name: rs-shipping
     build:
       context: shipping
     image: ${REPO}/rs-shipping:${TAG}
@@ -124,6 +132,7 @@ services:
       retries: 3
 
   ratings:
+    container_name: rs-ratings
     build:
       context: ratings
     image: ${REPO}/rs-ratings:${TAG}
@@ -144,6 +153,7 @@ services:
       retries: 3
 
   payment:
+    container_name: rs-payment
     build:
       context: payment
     image: ${REPO}/rs-payment:${TAG}
@@ -158,7 +168,8 @@ services:
       timeout: 10s
       retries: 3
 
-  dispatch: #------#
+  dispatch:
+    container_name: rs-dispatch
     build:
       context: dispatch
     image: ${REPO}/rs-dispatch:${TAG}
@@ -167,10 +178,10 @@ services:
     networks:
       - message-queue
 
-  web: #------#
+  web:
+    container_name: rs-web
     build:
       context: web
-
     image: ${REPO}/rs-web:${TAG}
     depends_on:
       - catalogue
@@ -187,10 +198,6 @@ services:
       interval: 10s
       timeout: 10s
       retries: 3
-    # Uncomment to enable Instana EUM
-    # environment:
-      # INSTANA_EUM_KEY: <your eum key>
-      # INSTANA_EUM_REPORTING_URL: <your reporting url>
 
 volumes:
   mysql-data:
