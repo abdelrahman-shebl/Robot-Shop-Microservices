@@ -149,7 +149,8 @@ jobs:
         #ensure the Node/Java apps are actually ready
         run: |
           echo "Waiting for web service to be healthy..."
-          timeout 120s sh -c 'until [ "$(docker inspect -f {{.State.Health.Status}} rs-web)" == "healthy" ]; do sleep 5; done'
+          timeout 120s sh -c 'until docker inspect --format="{{.State.Health.Status}}" rs-web 2>/dev/null | grep -q "healthy"; do echo "Status: $(docker inspect --format="{{.State.Health.Status}}" rs-web 2>/dev/null || echo "container not ready")"; sleep 5; done'
+          echo "Web service is healthy!"
 
       - name: OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.14.0
