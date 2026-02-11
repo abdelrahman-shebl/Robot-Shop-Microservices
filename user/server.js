@@ -281,7 +281,7 @@ function mongoConnect() {
             mongoURL = `mongodb://${mongoHost}:27017/${mongoDatabase}`;
         }
         
-        mongoClient.connect(mongoURL, (error, client) => {
+        mongoClient.connect(mongoURL, { useUnifiedTopology: true }, (error, client) => {
             if(error) {
                 reject(error);
             } else {

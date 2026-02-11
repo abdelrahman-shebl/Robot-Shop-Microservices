@@ -1,8 +1,8 @@
 services:
   mongodb:
     container_name: rs-mongodb
-    build:
-      context: mongo
+    # build:
+    #   context: mongo
     image: ${REPO}/rs-mongo:${TAG}
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
@@ -32,8 +32,8 @@ services:
 
   catalogue:
     container_name: rs-catalogue
-    build:
-      context: catalogue
+    # build:
+    #   context: catalogue
     image: ${REPO}/rs-catalogue:${TAG}
     depends_on:
       - mongodb
@@ -53,8 +53,8 @@ services:
 
   user:
     container_name: rs-user
-    build:
-      context: user
+    # build:
+    #   context: user
     image: ${REPO}/rs-user:${TAG}
     depends_on:
       - mongodb
@@ -75,8 +75,8 @@ services:
 
   cart:
     container_name: rs-cart
-    build:
-      context: cart
+    # build:
+    #   context: cart
     image: ${REPO}/rs-cart:${TAG}
     depends_on:
       - redis
@@ -91,8 +91,8 @@ services:
 
   mysql:
     container_name: rs-mysql
-    build:
-      context: mysql
+    # build:
+    #   context: mysql
     image: ${REPO}/rs-mysql:${TAG}
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
@@ -112,8 +112,8 @@ services:
 
   shipping:
     container_name: rs-shipping
-    build:
-      context: shipping
+    # build:
+    #   context: shipping
     image: ${REPO}/rs-shipping:${TAG}
     depends_on:
       - mysql
@@ -133,8 +133,8 @@ services:
 
   ratings:
     container_name: rs-ratings
-    build:
-      context: ratings
+    # build:
+    #   context: ratings
     image: ${REPO}/rs-ratings:${TAG}
     environment:
       MYSQL_HOST: mysql
@@ -154,8 +154,8 @@ services:
 
   payment:
     container_name: rs-payment
-    build:
-      context: payment
+    # build:
+    #   context: payment
     image: ${REPO}/rs-payment:${TAG}
     depends_on:
       - rabbitmq
@@ -170,8 +170,8 @@ services:
 
   dispatch:
     container_name: rs-dispatch
-    build:
-      context: dispatch
+    # build:
+    #   context: dispatch
     image: ${REPO}/rs-dispatch:${TAG}
     depends_on:
       - rabbitmq
@@ -180,8 +180,8 @@ services:
 
   web:
     container_name: rs-web
-    build:
-      context: web
+    # build:
+    #   context: web
     image: ${REPO}/rs-web:${TAG}
     depends_on:
       - catalogue

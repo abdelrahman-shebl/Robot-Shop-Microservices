@@ -39,16 +39,23 @@ ENV CATALOGUE_HOST=catalogue \
 # Instana tracing
 COPY --from=build /instana/*.so /tmp/
 
-COPY entrypoint.sh /root/
-RUN chown appuser:appuser /root/entrypoint.sh && chmod +x /root/entrypoint.sh
+# Create app directory for non-root user
+RUN mkdir -p /app && chown appuser:appuser /app
+
+COPY --chown=appuser:appuser entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 
 COPY default.conf.template /etc/nginx/conf.d/default.conf.template
 COPY static /usr/share/nginx/html
 
-# Fix ownership of nginx directories
-RUN chown -R appuser:appuser /usr/share/nginx /var/cache/nginx /var/log/nginx /var/run/nginx.pid 2>/dev/null || true && \
-    chown -R appuser:appuser /etc/nginx
+# Fix ownership of nginx directories and files for non-root user
+RUN chown -R appuser:appuser /usr/share/nginx /var/cache/nginx /var/log/nginx && \
+    chown -R appuser:appuser /etc/nginx && \
+    touch /var/run/nginx.pid && \
+    chown appuser:appuser /var/run/nginx.pid
 
+# Switch to non-root user
 USER appuser
 
-ENTRYPOINT ["/root/entrypoint.sh"]
+# Set the correct entrypoint
+ENTRYPOINT ["/app/entrypoint.sh"]
