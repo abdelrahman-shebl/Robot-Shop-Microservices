@@ -142,15 +142,52 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Install Utilities
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq netcat-openbsd curl > /dev/null 2>&1
+          echo "Utilities installed: nc, curl"
+
       - name: Start Ephemeral Stack
-        run: docker compose up -d web
+        run: |
+          echo "Starting full robot-shop stack..."
+          docker compose up -d
+          echo "Stack started, waiting for services to initialize..."
+          sleep 10
+
+      - name: Check Service Status
+        run: |
+          echo "=== Checking Docker Containers ==="
+          docker ps -a --format "table {{.Names}}\t{{.Status}}"
+          echo ""
+          echo "=== Checking Web Service Health ==="
+          docker inspect --format="{{.State.Health.Status}}" rs-web || echo "Web container not found"
 
       - name: Wait for Web Service Health
         #ensure the Node/Java apps are actually ready
         run: |
           echo "Waiting for web service to be healthy..."
-          timeout 120s sh -c 'until docker inspect --format="{{.State.Health.Status}}" rs-web 2>/dev/null | grep -q "healthy"; do echo "Status: $(docker inspect --format="{{.State.Health.Status}}" rs-web 2>/dev/null || echo "container not ready")"; sleep 5; done'
+          timeout 180s sh -c 'until docker inspect --format="{{.State.Health.Status}}" rs-web 2>/dev/null | grep -q "healthy"; do 
+            STATUS=$(docker inspect --format="{{.State.Health.Status}}" rs-web 2>/dev/null || echo "container not ready")
+            echo "Status: $STATUS"
+            sleep 5
+          done'
           echo "Web service is healthy!"
+          echo "=== Final Service Check ==="
+          docker ps -a --format "table {{.Names}}\t{{.Status}}"
+
+      - name: Verify Web Port is Listening
+        run: |
+          echo "Checking if port 8080 is listening..."
+          if nc -z localhost 8080; then
+            echo "✓ Port 8080 is open and listening"
+            curl -s -H "X-INSTANA-SYNTHETIC: 1" http://localhost:8080/ | head -20
+          else
+            echo "✗ Port 8080 is NOT listening"
+            echo "=== Docker Logs for Web ==="
+            docker logs --tail 50 rs-web
+            exit 1
+          fi
 
       - name: OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.14.0
