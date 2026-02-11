@@ -157,6 +157,10 @@ module "ssm" {
   USER_MONGO_USER = local.secrets.USER_MONGO_USER
   USER_MONGO_PASSWORD = local.secrets.USER_MONGO_PASSWORD
   USER_MONGO_DATABASE = local.secrets.USER_MONGO_DATABASE
+
+# Dojo Credentials
+  DD_ADMIN_USER = local.secrets.DD_ADMIN_USER
+  DD_ADMIN_PASSWORD = local.secrets.DD_ADMIN_PASSWORD
 }
 
 

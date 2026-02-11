@@ -27,6 +27,36 @@ applications:
     destination:
       namespace: kube-system
       server: https://kubernetes.default.svc
+
+  external-secrets-operator:
+    <<: *argo
+    sources:
+      - chart: external-secrets-operator
+        repoURL: https://charts.external-secrets.io/
+        targetRevision: "1.3.2"
+        helm:
+          valueFiles:
+            - $repo/terraform/modules/addons/values/eso-values.yaml
+      - <<: *repo_link
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-4"
+    destination:
+      namespace: eso
+      server: https://kubernetes.default.svc
+
+  external-secrets-manifests:
+    <<: *argo
+    source:
+      path: K8s/eso
+      repoURL: https://github.com/abdelrahman-shebl/Robot-Shop-Microservices.git
+      targetRevision: "infra-charts"
+    destination:
+      namespace: eso
+      server: https://kubernetes.default.svc
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-3"
     
 
   traefik:
@@ -109,6 +139,7 @@ applications:
       namespace: monitoring
       server: https://kubernetes.default.svc
 
+
   prometheus-mysql-exporter:
     <<: *argo
     sources:
@@ -143,35 +174,41 @@ applications:
       namespace: monitoring
       server: https://kubernetes.default.svc
 
-  external-secrets-operator:
+
+
+  defectdojo:
     <<: *argo
     sources:
-      - chart: external-secrets-operator
-        repoURL: https://charts.external-secrets.io/
-        targetRevision: "1.3.2"
+      - chart: defectdojo
+        repoURL: https://raw.githubusercontent.com/DefectDojo/django-DefectDojo/helm-charts
+        targetRevision: "1.9.12"
         helm:
           valueFiles:
-            - $repo/terraform/modules/addons/values/eso-values.yaml
+            - $repo/terraform/modules/addons/values/defectdojo-values.yaml
+            # "Surgical" Overrides
+          parameters:
+            - name: "host"
+              value: "dojo.${domain}"
+            
+
+            - name: "siteUrl"
+              value: "https://dojo.${domain}.me"
+
+            - name: "django.ingress.hosts[0]"
+              value: "dojo.${domain}"
+
+            - name: "django.ingress.tls[0].hosts[0]"
+              value: "dojo.${domain}"
+                                      
+
       - <<: *repo_link
     metadata:
       annotations:
-        argocd.argoproj.io/sync-wave: "-2"
+        argocd.argoproj.io/sync-wave: "-3"
     destination:
-      namespace: eso
+      namespace: dojo
       server: https://kubernetes.default.svc
 
-  external-secrets-manifests:
-    <<: *argo
-    source:
-      path: K8s/eso
-      repoURL: https://github.com/abdelrahman-shebl/Robot-Shop-Microservices.git
-      targetRevision: "infra-charts"
-    destination:
-      namespace: eso
-      server: https://kubernetes.default.svc
-    metadata:
-      annotations:
-        argocd.argoproj.io/sync-wave: "-1"
 
 
   opencost:

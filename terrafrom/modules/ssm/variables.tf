@@ -50,3 +50,11 @@ variable "USER_MONGO_PASSWORD" {
 variable "USER_MONGO_DATABASE" {
   type = string
 }
+
+variable "DD_ADMIN_USER" {
+  type = string
+}
+
+variable "DD_ADMIN_PASSWORD" {
+  type = string
+}

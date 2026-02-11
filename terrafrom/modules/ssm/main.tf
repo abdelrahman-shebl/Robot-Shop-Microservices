@@ -40,3 +40,15 @@ resource "aws_ssm_parameter" "mongo_creds" {
   USER_MONGO_DATABASE = var.USER_MONGO_DATABASE
   })
 }
+
+resource "aws_ssm_parameter" "dojo_creds" {
+  name      = "/prod/dojo/credentials"
+  type      = "SecureString"
+  overwrite = true
+  value     = jsonencode({
+
+  # Dojo Credentials
+  DD_ADMIN_USER = var.DD_ADMIN_USER
+  DD_ADMIN_PASSWORD = var.DD_ADMIN_PASSWORD
+  })
+}

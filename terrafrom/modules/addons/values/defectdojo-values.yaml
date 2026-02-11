@@ -1,0 +1,62 @@
+# 1. Global Settings
+# This is the domain you will use to access the dashboard
+
+#  Login Credentials 
+createSecret: false
+existingSecret: "defectdojo-admin-secrets" # Matches the secret you created manually
+
+
+host: "" 
+siteUrl: ""
+
+# 2. Django (uWSGI): The web interface and API.
+django:
+  replicas: 1
+  ingress:
+    enabled: true
+    className: "traefik" 
+    annotations:
+      traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+    hosts:
+      -  ""
+    tls:
+      - secretName: dojo-tls
+        hosts:
+          - ""
+
+# Celery Worker: The background processor (this does the heavy lifting, like importing scans and deduplicating findings).
+# 3. Background Workers (Celery)
+# CRITICAL: This is where your scan uploads are processed.
+celery:
+  replicas: 1
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi" # Scans can be large! Give it RAM.
+      cpu: "1000m"
+
+#PostgreSQL: The database where all vulnerabilities are stored.
+# 4. The Database (PostgreSQL)
+# We use the Bitnami sub-chart.
+postgresql:
+  primary:
+    persistence:
+      enabled: true
+      storageClass: "gp2" # Standard AWS storage
+      size: 1Gi
+
+# 5. The Message Broker (Redis)
+# REPLACE 'redis' BLOCK WITH 'valkey' BLOCK
+valkey:
+  enabled: true
+  architecture: standalone 
+  
+  auth:
+    enabled: false 
+  primary:
+    persistence:
+      enabled: true
+      storageClass: "gp2" 
+      size: 512Mi
