@@ -38,10 +38,15 @@ jobs:
             fi
           done
 
-          # 4. Handle DAST
-          if [ -f "zap_report.html" ]; then
-             # Note: DefectDojo requires 'ZAP Scan' type for ZAP reports
+          # 4. Handle DAST (ZAP creates report_json.json, report_html.html, report_md.md)
+          if [ -f "report_json.json" ]; then
+             # Note: DefectDojo prefers JSON format for ZAP reports
              curl -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/reimport-scan/" \
               -H "Authorization: Token ${{ secrets.DEFECTDOJO_TOKEN }}" \
-              -F "scan_type=ZAP Scan" -F "product_name=Robot-Shop-Web" -F "file=@zap_report.html"
+              -F "scan_type=ZAP Scan" -F "product_name=Robot-Shop-Web" -F "file=@report_json.json"
+          elif [ -f "report_html.html" ]; then
+             # Fallback to HTML if JSON not available
+             curl -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/reimport-scan/" \
+              -H "Authorization: Token ${{ secrets.DEFECTDOJO_TOKEN }}" \
+              -F "scan_type=ZAP Scan" -F "product_name=Robot-Shop-Web" -F "file=@report_html.html"
           fi
