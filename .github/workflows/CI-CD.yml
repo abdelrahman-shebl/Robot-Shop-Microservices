@@ -160,10 +160,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: zap-dast-reports
-          path: |
-            report_html.html
-            report_json.json
-            report_md.md
+          path: report_html.html
 
       - name: Cleanup Stack
         if: always()
