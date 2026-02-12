@@ -4,7 +4,10 @@ dependencies:
   version: 0.1.0
 - name: redis
   repository: https://charts.bitnami.com/bitnami
-  version: 18.19.4
+  version: 24.0.7
+- name: rabbitmq
+  repository: https://charts.bitnami.com/bitnami
+  version: 14.0.0
 - name: user
   repository: file://./charts/user
   version: 0.1.0
@@ -20,5 +23,20 @@ dependencies:
 - name: dispatch
   repository: file://./charts/dispatch
   version: 0.1.0
-digest: sha256:6a1165de896cc0af77fb883d195996dbfdbd68a1edcc20e86ee4a16691b0d58b
-generated: "2026-02-02T09:54:25.885097375+02:00"
+- name: cart
+  repository: file://./charts/cart
+  version: 0.1.0
+- name: catalogue
+  repository: file://./charts/catalogue
+  version: 0.1.0
+- name: mongodb
+  repository: file://./charts/mongodb
+  version: 0.1.0
+- name: shipping
+  repository: file://./charts/shipping
+  version: 0.1.0
+- name: payment
+  repository: file://./charts/payment
+  version: 0.1.0
+digest: sha256:bb75186b8274a50ab062d286c97ad28edbff782319e1f8038ea1534487d850c9
+generated: "2026-02-12T07:11:57.969716659+02:00"
