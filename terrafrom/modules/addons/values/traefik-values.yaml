@@ -1,22 +1,18 @@
 
 ports:
   web:
-    redirectTo: websecure
+    port: 8000
   websecure:
-    tls:
-      enabled: true
-      certResolver: letsencrypt
+    port: 8443
 
 service:
   enabled: true
   type: LoadBalancer
 
-certificatesResolvers:
-  letsencrypt:
-    acme:
-      email: sheblabdo00@gmail.com
-      storage: /data/acme.json
-      tlsChallenge: true
+additionalArguments:
+  - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+  - "--certificatesresolvers.letsencrypt.acme.email=sheblabdo00@gmail.com"
+  - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
 
 persistence:
   enabled: true

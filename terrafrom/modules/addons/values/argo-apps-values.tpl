@@ -1,6 +1,6 @@
 .repo: &repo_link
   repoURL: https://github.com/abdelrahman-shebl/Robot-Shop-Microservices.git
-  targetRevision: "infra-charts"
+  targetRevision: "feature/pipeline"
   ref: repo
 
 .argo_defaults: &argo
@@ -31,12 +31,12 @@ applications:
   external-secrets-operator:
     <<: *argo
     sources:
-      - chart: external-secrets-operator
+      - chart: external-secrets
         repoURL: https://charts.external-secrets.io/
-        targetRevision: "1.3.2"
+        targetRevision: "0.12.1"
         helm:
           valueFiles:
-            - $repo/terraform/modules/addons/values/eso-values.yaml
+            - $repo/terrafrom/modules/addons/values/eso-values.yaml
       - <<: *repo_link
     metadata:
       annotations:
@@ -50,7 +50,7 @@ applications:
     source:
       path: K8s/eso
       repoURL: https://github.com/abdelrahman-shebl/Robot-Shop-Microservices.git
-      targetRevision: "infra-charts"
+      targetRevision: "feature/pipeline"
     destination:
       namespace: eso
       server: https://kubernetes.default.svc
@@ -67,7 +67,7 @@ applications:
         targetRevision: "39.0.0"
         helm:
           valueFiles:
-            - $repo/terraform/modules/addons/values/traefik-values.yaml
+            - $repo/terrafrom/modules/addons/values/traefik-values.yaml
 
       - <<: *repo_link
     metadata:
@@ -82,10 +82,10 @@ applications:
     sources:
       - chart: external-dns
         repoURL: https://kubernetes-sigs.github.io/external-dns/
-        targetRevision: "0.20.0"
+        targetRevision: "1.20.0"
         helm:
           valueFiles:
-            - $repo/terraform/modules/addons/values/edns-values.yaml
+            - $repo/terrafrom/modules/addons/values/edns-values.yaml
             # "Surgical" Overrides
           parameters:
             - name: "domainFilters[0]"
@@ -107,11 +107,11 @@ applications:
     <<: *argo
     sources:
       - chart: kube-prometheus-stack
-        repoURL: oci://ghcr.io/prometheus-community/charts
-        targetRevision: "81.4.3"
+        repoURL: https://prometheus-community.github.io/helm-charts
+        targetRevision: "68.2.2"
         helm:
           valueFiles:
-            - $repo/terraform/modules/addons/values/prometheus-values.yaml
+            - $repo/terrafrom/modules/addons/values/prometheus-values.yaml
             # "Surgical" Overrides
           parameters:
             - name: "prometheus.ingress.hosts[0]"
@@ -144,11 +144,11 @@ applications:
     <<: *argo
     sources:
       - chart: prometheus-mysql-exporter
-        repoURL: oci://ghcr.io/prometheus-community/charts
-        targetRevision: "2.12.0"
+        repoURL: https://prometheus-community.github.io/helm-charts
+        targetRevision: "2.7.1"
         helm:
           valueFiles:
-            - $repo/terraform/modules/addons/values/prometheus-mysql-values.yaml
+            - $repo/terrafrom/modules/addons/values/prometheus-mysql-values.yaml
       - <<: *repo_link
     metadata:
       annotations:
@@ -161,11 +161,11 @@ applications:
     <<: *argo
     sources:
       - chart: prometheus-mongodb-exporter
-        repoURL: oci://ghcr.io/prometheus-community/charts
-        targetRevision: "3.13.0"
+        repoURL: https://prometheus-community.github.io/helm-charts
+        targetRevision: "3.8.2"
         helm:
           valueFiles:
-            - $repo/terraform/modules/addons/values/prometheus-mongo-values.yaml
+            - $repo/terrafrom/modules/addons/values/prometheus-mongo-values.yaml
       - <<: *repo_link
     metadata:
       annotations:
@@ -184,7 +184,7 @@ applications:
         targetRevision: "1.9.12"
         helm:
           valueFiles:
-            - $repo/terraform/modules/addons/values/defectdojo-values.yaml
+            - $repo/terrafrom/modules/addons/values/defectdojo-values.yaml
             # "Surgical" Overrides
           parameters:
             - name: "host"
@@ -219,7 +219,7 @@ applications:
         targetRevision: "2.5.5"
         helm:
           valueFiles:
-            - $repo/terraform/modules/addons/values/opencost-values.yaml
+            - $repo/terrafrom/modules/addons/values/opencost-values.yaml
             # "Surgical" Overrides
           parameters:
             - name: "clusterName"
@@ -228,8 +228,11 @@ applications:
             - name: "opencost.cloudIntegrationSecret"
               value: "${cloudIntegrationSecret}"
             
-            - name: "opencost.ui.ingress.hosts[0]"
+            - name: "opencost.ui.ingress.hosts[0].host"
               value: "opencost.${domain}"
+
+            - name: "opencost.ui.ingress.hosts[0].paths[0]"
+              value: "/"
 
             - name: "opencost.ui.ingress.tls[0].hosts[0]"
               value: "opencost.${domain}"
@@ -250,14 +253,20 @@ applications:
         targetRevision: "10.2.0"
         helm:
           valueFiles:
-            - $repo/terraform/modules/addons/values/goldilocks-values.yaml
+            - $repo/terrafrom/modules/addons/values/goldilocks-values.yaml
             # "Surgical" Overrides
           parameters:
             - name: "clusterName"
               value: "${cluster_name}"
             
-            - name: "dashboard.ingress.hosts[0]"
+            - name: "dashboard.ingress.hosts[0].host"
               value: "goldilocks.${domain}"
+
+            - name: "dashboard.ingress.hosts[0].paths[0].path"
+              value: "/"
+
+            - name: "dashboard.ingress.hosts[0].paths[0].pathType"
+              value: "Prefix"
 
             - name: "dashboard.ingress.tls[0].hosts[0]"
               value: "goldilocks.${domain}"
@@ -275,11 +284,14 @@ applications:
     sources:
       - path: helm/robot-shop
         repoURL: https://github.com/abdelrahman-shebl/Robot-Shop-Microservices.git
-        targetRevision: "infra-charts"
+        targetRevision: "feature/pipeline"
         helm:
           valueFiles:
             - $repo/helm/robot-shop/values.yaml
             - $repo/helm/robot-shop/values-${env}.yaml
+          parameters:
+            - name: "web.ingress.host"
+              value: "${domain}"
       - <<: *repo_link
     metadata:
       annotations:

@@ -14,7 +14,7 @@ opencost:
       enabled: true
       # REPLACE this with your actual Prometheus service URL
       # Format: http://<service-name>.<namespace>.svc.cluster.local:<port>
-      url: "http://prom-monitor-prometheus.monitoring.svc:80"
+      url: http://monitor-prometheus.monitoring.svc:80
   serviceAccount:
     create: true
     name: "opencost-sa"
@@ -25,7 +25,9 @@ opencost:
       annotations:
 
       hosts:
-      - ""
+      - host: ""
+        paths:
+          - "/"
 
       tls: 
           - secretName: opencost-tls

@@ -40,7 +40,10 @@ dashboard:
       # Use the Let's Encrypt resolver we set up in Traefik earlier
       traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
     hosts:
-      - ""
+      - host: ""
+        paths:
+          - path: "/"
+            pathType: Prefix
     tls:
       - secretName: goldilocks-tls
         hosts:
