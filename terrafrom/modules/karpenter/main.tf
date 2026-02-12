@@ -51,7 +51,7 @@ resource "kubectl_manifest" "karpenter_node_class" {
         blockDeviceMappings:
           - deviceName: /dev/xvda
             ebs:
-              volumeSize: 20Gi
+              volumeSize: 100Gi
               volumeType: gp3
               encrypted: true
 
@@ -87,19 +87,20 @@ resource "kubectl_manifest" "karpenter_node_pool" {
             - key: node.kubernetes.io/instance-type 
               operator: In
               values: 
-                - "t3.small"       # Cheap, good for system pods
-                - "c7i-flex.large" # Compute optimized 
-                - "m7i-flex.large" # Memory optimized 
+                - "t3.medium"      # Baseline: 1 vCPU, 4GB RAM
+                - "t3.large"       # Better baseline: 2 vCPU, 8GB RAM
+                - "c7i-flex.large" # Compute optimized: 2 vCPU, 8GB RAM
+                - "m7i-flex.large" # Memory optimized: 2 vCPU, 8GB RAM 
 
       limits:
-        cpu: 10
-        memory: 40Gi
+        cpu: 50
+        memory: 200Gi
 
       disruption:
 
-        consolidationPolicy: WhenUnderutilized
+        consolidationPolicy: WhenEmptyOrUnderutilized
         
-        consolidateAfter: 30s
+        consolidateAfter: 300s
         
         expireAfter: 168h
   YAML
