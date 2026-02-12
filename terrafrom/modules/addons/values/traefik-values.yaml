@@ -15,7 +15,4 @@ additionalArguments:
   - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
 
 persistence:
-  enabled: true
-  path: /data
-  size: 128Mi
-  storageClassName: gp2
+  enabled: false
