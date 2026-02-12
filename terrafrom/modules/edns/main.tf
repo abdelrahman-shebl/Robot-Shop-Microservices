@@ -33,7 +33,7 @@ resource "aws_iam_role_policy_attachment" "edns-attach" {
 
 resource "aws_eks_pod_identity_association" "edns_pod_identity_association" {
   cluster_name    = var.cluster_name
-  namespace       = "kube-system"
+  namespace       = "edns"
   service_account = "edns-sa"
   role_arn        = aws_iam_role.edns_role.arn
 }
