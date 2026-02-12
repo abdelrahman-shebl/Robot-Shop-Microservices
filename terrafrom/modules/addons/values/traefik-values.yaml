@@ -18,3 +18,4 @@ persistence:
   enabled: true
   path: /data
   size: 128Mi
+  storageClassName: gp2
