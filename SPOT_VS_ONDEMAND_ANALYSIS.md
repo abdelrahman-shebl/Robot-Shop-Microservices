@@ -12,7 +12,7 @@ ip-10-0-2-243.ec2.internal   Ready    <none>   150m   v1.35.0-33+37970203ae1a44
 | Property | Value |
 |----------|-------|
 | Instance Type | c7i-flex.large |
-| vCPU | 2 |
+| vCPU | 2 |grafana.shebl22.me
 | Memory | 8 GB |
 | Capacity Type | On-Demand |
 | Provisioned By | Karpenter |
