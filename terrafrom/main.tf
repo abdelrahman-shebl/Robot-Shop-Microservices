@@ -35,6 +35,10 @@ module "eks" {
   node_security_group_tags = {
     "karpenter.sh/discovery" = var.cluster_name
   }
+  
+  # Cluster security group - allow Karpenter to manage
+  create_node_security_group = true
+  
   eks_managed_node_groups = {
     karpenter_node_group = {
        name            = "karpenter-node-group"
@@ -72,9 +76,19 @@ module "eks" {
   enable_cluster_creator_admin_permissions = true
 
   # 3. Addons
-    addons = {
+  addons = {
+    vpc-cni = {
+      before_compute = true
+    }
+    kube-proxy = {
+      before_compute = true
+    }
+    coredns = {
+      before_compute = true
+    }
     eks-pod-identity-agent = {
       addon_version = "v1.3.4-eksbuild.1"
+      before_compute = true
     }
   }
 
@@ -108,25 +122,25 @@ module "vpc" {
 
 
 module "karpenter_chart_and_crds" {
-  source  = "./modules/karpenter"
-  queue_name             = module.karpenter_infra.queue_name
-  cluster_name           = var.cluster_name
-  karpenter_role         = module.karpenter_infra.iam_role_name
+  source         = "./modules/karpenter"
+  queue_name     = module.karpenter_infra.queue_name
+  cluster_name   = var.cluster_name
+  karpenter_role = module.karpenter_infra.iam_role_name
 
 }
 
 
 module "opencost_infra" {
-  source  = "./modules/opencost"
+  source       = "./modules/opencost"
   cluster_name = var.cluster_name
 }
 module "edns_infra" {
-  source  = "./modules/edns"
+  source       = "./modules/edns"
   cluster_name = var.cluster_name
 }
 # add eso files
 module "eso_fra" {
-  source  = "./modules/eso"
+  source       = "./modules/eso"
   cluster_name = var.cluster_name
 }
 module "ssm" {
@@ -135,40 +149,40 @@ module "ssm" {
   MYSQL_ROOT_PASSWORD = local.secrets.MYSQL_ROOT_PASSWORD
 
   # Shipping MySQL Credentials
-  SHIPPING_MYSQL_USER = local.secrets.SHIPPING_MYSQL_USER
+  SHIPPING_MYSQL_USER     = local.secrets.SHIPPING_MYSQL_USER
   SHIPPING_MYSQL_PASSWORD = local.secrets.SHIPPING_MYSQL_PASSWORD
   SHIPPING_MYSQL_DATABASE = local.secrets.SHIPPING_MYSQL_DATABASE
 
   # Ratings MySQL Credentials
-  RATINGS_MYSQL_USER = local.secrets.RATINGS_MYSQL_USER
+  RATINGS_MYSQL_USER     = local.secrets.RATINGS_MYSQL_USER
   RATINGS_MYSQL_PASSWORD = local.secrets.RATINGS_MYSQL_PASSWORD
   RATINGS_MYSQL_DATABASE = local.secrets.RATINGS_MYSQL_DATABASE
-  
+
 
   # MongoDB Root Credentials
   MONGO_INITDB_ROOT_USERNAME = local.secrets.MONGO_INITDB_ROOT_USERNAME
   MONGO_INITDB_ROOT_PASSWORD = local.secrets.MONGO_INITDB_ROOT_PASSWORD
   # Catalog MongoDB Credentials
-  CATALOGUE_MONGO_USER = local.secrets.CATALOGUE_MONGO_USER
+  CATALOGUE_MONGO_USER     = local.secrets.CATALOGUE_MONGO_USER
   CATALOGUE_MONGO_PASSWORD = local.secrets.CATALOGUE_MONGO_PASSWORD
   CATALOGUE_MONGO_DATABASE = local.secrets.CATALOGUE_MONGO_DATABASE
 
   # Users MongoDB Credentials
-  USER_MONGO_USER = local.secrets.USER_MONGO_USER
+  USER_MONGO_USER     = local.secrets.USER_MONGO_USER
   USER_MONGO_PASSWORD = local.secrets.USER_MONGO_PASSWORD
   USER_MONGO_DATABASE = local.secrets.USER_MONGO_DATABASE
 
-# Dojo Credentials
-  DD_ADMIN_USER = local.secrets.DD_ADMIN_USER
+  # Dojo Credentials
+  DD_ADMIN_USER     = local.secrets.DD_ADMIN_USER
   DD_ADMIN_PASSWORD = local.secrets.DD_ADMIN_PASSWORD
 }
 
 
 module "addons" {
-  source  = "./modules/addons"
+  source                 = "./modules/addons"
   node_role              = module.karpenter_infra.node_iam_role_name
   domain                 = var.domain
-  env                     = var.env
+  env                    = var.env
   cluster_name           = var.cluster_name
   region                 = var.region
   cloudIntegrationSecret = module.opencost_infra.cloudIntegrationSecret

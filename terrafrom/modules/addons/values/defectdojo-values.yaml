@@ -18,7 +18,7 @@ django:
     annotations:
       traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
     hosts:
-      -  ""
+      - ""
     tls:
       - secretName: dojo-tls
         hosts:

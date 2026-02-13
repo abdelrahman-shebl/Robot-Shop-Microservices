@@ -55,6 +55,7 @@ server:
   # KEEP YOUR INGRESS CONFIG
   ingress:
     enabled: true
+    hostname: argocd.${domain}
     ingressClassName: traefik
     annotations:
       traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
@@ -64,7 +65,7 @@ server:
     tls:
       - secretName: argocd-tls
         hosts:
-          - argocd.shebl.com
+          - argocd.${domain}
 
 # Keep ApplicationSet, it's tiny and useful
 applicationSet:

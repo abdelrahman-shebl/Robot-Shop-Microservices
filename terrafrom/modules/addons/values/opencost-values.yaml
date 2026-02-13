@@ -23,7 +23,7 @@ opencost:
       enabled: "true"
       ingressClassName: traefik
       annotations:
-
+        traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
       hosts:
       - host: ""
         paths:

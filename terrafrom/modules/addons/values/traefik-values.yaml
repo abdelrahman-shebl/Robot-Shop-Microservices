@@ -13,6 +13,9 @@ additionalArguments:
   - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
   - "--certificatesresolvers.letsencrypt.acme.email=sheblabdo00@gmail.com"
   - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
+  - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+  - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+  - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
 
 persistence:
   enabled: false
