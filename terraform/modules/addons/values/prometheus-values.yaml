@@ -94,6 +94,5 @@ grafana:
 prometheusOperator:
   admissionWebhooks:
     enabled: false
-    patch:
-      enabled: false
+    patch: null
         
