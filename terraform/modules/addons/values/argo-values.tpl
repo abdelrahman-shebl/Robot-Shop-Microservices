@@ -62,11 +62,6 @@ server:
     hosts:
       - host: argocd.${domain}
 
-    tls:
-      - secretName: argocd-tls
-        hosts:
-          - argocd.${domain}
-
 # Keep ApplicationSet, it's tiny and useful
 applicationSet:
   replicas: 1

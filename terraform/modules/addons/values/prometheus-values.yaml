@@ -14,10 +14,6 @@ prometheus:
       - ""
     annotations:
       traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
-    tls: 
-      - secretName: prometheus-tls
-        hosts:
-          - ""
 
   prometheusSpec:
     # 1. Scrape EVERYTHING without needing 'release' labels
@@ -51,10 +47,6 @@ grafana:
 
     annotations:
       traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
-    tls: 
-      - secretName: grafana-tls
-        hosts:
-          - ""
 
 
   defaultDashboardsEnabled: false

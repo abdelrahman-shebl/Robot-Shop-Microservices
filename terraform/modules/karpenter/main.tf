@@ -28,34 +28,46 @@ resource "helm_release" "karpenter" {
 
 resource "kubectl_manifest" "karpenter_node_class" {
   
-  yaml_body = <<-YAML
-      apiVersion: karpenter.k8s.aws/v1
-      kind: EC2NodeClass
-      metadata:
-        name: default
-      spec:
-
-        role: "${var.karpenter_role}"
-
-        subnetSelectorTerms:
-          - tags:
-              karpenter.sh/discovery: "${var.cluster_name}"
-
-        securityGroupSelectorTerms:
-          - tags:
-              karpenter.sh/discovery: "${var.cluster_name}"
-
-
-        amiFamily: AL2023
-
-        blockDeviceMappings:
-          - deviceName: /dev/xvda
-            ebs:
-              volumeSize: 100Gi
-              volumeType: gp3
-              encrypted: true
-
-  YAML
+  yaml_body = yamlencode({
+    apiVersion = "karpenter.k8s.aws/v1"
+    kind       = "EC2NodeClass"
+    metadata = {
+      name = "default"
+    }
+    spec = {
+      role = var.karpenter_role
+      amiSelectorTerms = [
+        {
+          alias = "al2023@latest"
+        }
+      ]
+      subnetSelectorTerms = [
+        {
+          tags = {
+            "karpenter.sh/discovery" = var.cluster_name
+          }
+        }
+      ]
+      securityGroupSelectorTerms = [
+        {
+          tags = {
+            "karpenter.sh/discovery" = var.cluster_name
+          }
+        }
+      ]
+      amiFamily = "AL2023"
+      blockDeviceMappings = [
+        {
+          deviceName = "/dev/xvda"
+          ebs = {
+            volumeSize = "100Gi"
+            volumeType = "gp3"
+            encrypted  = true
+          }
+        }
+      ]
+    }
+  })
 
   depends_on = [helm_release.karpenter]
 }

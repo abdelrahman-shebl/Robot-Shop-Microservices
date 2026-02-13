@@ -116,18 +116,11 @@ applications:
           parameters:
             - name: "prometheus.ingress.hosts[0]"
               value: "prometheus.${domain}"
-            
-
-            - name: "prometheus.ingress.tls[0].hosts[0]"
-              value: "prometheus.${domain}"
 
             - name: "prometheus.prometheusSpec.externalUrl"
               value: "https://prometheus.${domain}"
 
             - name: "grafana.ingress.hosts[0]"
-              value: "grafana.${domain}"
-
-            - name: "grafana.ingress.tls[0].hosts[0]"
               value: "grafana.${domain}"
                                       
 
@@ -196,9 +189,6 @@ applications:
 
             - name: "django.ingress.hosts[0]"
               value: "dojo.${domain}"
-
-            - name: "django.ingress.tls[0].hosts[0]"
-              value: "dojo.${domain}"
                                       
 
       - <<: *repo_link
@@ -231,9 +221,6 @@ applications:
             - name: "opencost.ui.ingress.hosts[0].host"
               value: "opencost.${domain}"
 
-            - name: "opencost.ui.ingress.tls[0].hosts[0]"
-              value: "opencost.${domain}"
-
       - <<: *repo_link
     metadata:
       annotations:
@@ -257,9 +244,6 @@ applications:
               value: "${cluster_name}"
             
             - name: "dashboard.ingress.hosts[0].host"
-              value: "goldilocks.${domain}"
-
-            - name: "dashboard.ingress.tls[0].hosts[0]"
               value: "goldilocks.${domain}"
 
       - <<: *repo_link

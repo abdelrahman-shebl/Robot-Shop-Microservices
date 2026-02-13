@@ -44,10 +44,6 @@ dashboard:
         paths:
           - path: "/"
             pathType: Prefix
-    tls:
-      - secretName: goldilocks-tls
-        hosts:
-          - ""
 
 # 5. Resources (Good defaults for production)
   resources:

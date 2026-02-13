@@ -28,8 +28,3 @@ opencost:
       - host: ""
         paths:
           - "/"
-
-      tls: 
-          - secretName: opencost-tls
-            hosts:
-              - ""

@@ -14,15 +14,12 @@ django:
   replicas: 1
   ingress:
     enabled: true
-    className: "traefik" 
+    ingressClassName: "traefik"
     annotations:
       traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
     hosts:
       - ""
-    tls:
-      - secretName: dojo-tls
-        hosts:
-          - ""
+    tls: []
 
 # Celery Worker: The background processor (this does the heavy lifting, like importing scans and deduplicating findings).
 # 3. Background Workers (Celery)

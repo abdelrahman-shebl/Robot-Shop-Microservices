@@ -87,7 +87,6 @@ module "eks" {
       before_compute = true
     }
     eks-pod-identity-agent = {
-      addon_version = "v1.3.4-eksbuild.1"
       before_compute = true
     }
   }

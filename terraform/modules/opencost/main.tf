@@ -211,10 +211,15 @@ resource "aws_iam_role_policy" "opencost_access" {
 }
 
 # 4.3 POD IDENTITY ASSOCIATION
-
+resource "kubernetes_namespace" "opencost_ns" {
+  metadata {
+    name = "opencost"
+  }
+}
 resource "aws_eks_pod_identity_association" "opencost" {
   cluster_name    =  var.cluster_name #aws_eks_cluster.main.name  
   namespace       = "opencost"
+  
   service_account = "opencost-sa"
   role_arn        = aws_iam_role.opencost_pod.arn
 }
