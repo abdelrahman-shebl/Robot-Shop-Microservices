@@ -1,6 +1,6 @@
 .image: &tag
   repository: shebl22
-  version: c0b77276fdf57459e92474369e850f4484ab4953
+  version: eaa32ee69f3603d3cffac8b208695cf67aa61523
 redis:
   enabled: true
   fullnameOverride: redis
@@ -93,10 +93,8 @@ web:
   enabled: true
   image:
     !!merge <<: *tag
-    
 ingress:
   host: ""
-
 mysql:
   enabled: true
   image:
