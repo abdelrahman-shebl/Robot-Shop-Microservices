@@ -138,6 +138,7 @@ applications:
         selfHeal: true
       syncOptions:
         - CreateNamespace=true
+        - Replace=true
     sources:
       - chart: kube-prometheus-stack
         repoURL: https://prometheus-community.github.io/helm-charts
