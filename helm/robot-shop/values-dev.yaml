@@ -23,8 +23,6 @@ user:
 web:
 
   <<: *dev_apis_values
-  ingress:
-    host: shebl.com
 
 shipping:
   
@@ -76,16 +74,17 @@ mongodb:
 
 
 redis:
+  architecture: standalone
   master:
     persistence:
       enabled: true
       size: 200Mi
-      
-  replica:
-    replicaCount: 3
-    persistence:
-      enabled: true
-      size: 200Mi
+
+# rabbitmq values
+rabbitmq:
+  replicaCount: 1
+  persistence:
+    size: 200Mi
 
 
 # from Shebl to Ayman: write your rabitmq values so I can add them here in dev-values :)

@@ -93,6 +93,10 @@ web:
   enabled: true
   image:
     !!merge <<: *tag
+    
+ingress:
+  host: ""
+
 mysql:
   enabled: true
   image:

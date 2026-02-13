@@ -6,3 +6,6 @@ complete infra ./
 -> subnets
 -> sg
 -> route53
+
+
+rename terraform folder
