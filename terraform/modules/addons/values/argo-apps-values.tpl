@@ -12,7 +12,7 @@
         selfHeal: true
       syncOptions:
         - CreateNamespace=true
-        - ServerSideApply=true
+        - Replace=true
 
 applications:
 
