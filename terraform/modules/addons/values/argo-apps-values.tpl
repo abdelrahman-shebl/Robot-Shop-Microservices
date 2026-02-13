@@ -34,7 +34,7 @@ applications:
         selfHeal: true
       syncOptions:
         - CreateNamespace=true
-        - Replace=true
+        - ServerSideApply=true
     sources:
       - chart: external-secrets
         repoURL: https://charts.external-secrets.io/
@@ -138,8 +138,7 @@ applications:
         selfHeal: true
       syncOptions:
         - CreateNamespace=true
-        - Replace=true
-        - SkipDryRunOnMissingResource=true
+        - ServerSideApply=true
     sources:
       - chart: kube-prometheus-stack
         repoURL: https://prometheus-community.github.io/helm-charts
