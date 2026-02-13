@@ -34,6 +34,9 @@ controller:
     limits:
       cpu: 500m
       memory: 512Mi
+  # Pin to managed node group reserved for system workloads
+  nodeSelector:
+    workload-type: "system"
   # Good metrics for debugging, keeps resource cost low
   metrics:
     enabled: true 
@@ -51,6 +54,9 @@ server:
     limits:
       cpu: 200m
       memory: 256Mi
+  # Pin to managed node group reserved for system workloads
+  nodeSelector:
+    workload-type: "system"
   
   # KEEP YOUR INGRESS CONFIG
   ingress:
@@ -77,13 +83,13 @@ configs:
 notifications:
   enabled: false
 
-# global:
-#   nodeSelector:
-#     node-role.kubernetes.io/system: "true"
+global:
+  nodeSelector:
+    workload-type: "system"
 
-#   tolerations: 
-#   - key: "CriticalAddonsOnly"
-#     operator: "Equal"
-#     value: "true"
-#     effect: "NoSchedule"
+  tolerations:
+  - key: "workload-type"
+    operator: "Equal"
+    value: "system"
+    effect: "NoSchedule"
     

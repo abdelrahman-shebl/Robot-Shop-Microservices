@@ -49,20 +49,18 @@ module "eks" {
       instance_types = ["c7i-flex.large"]
       capacity_type  = "ON_DEMAND"
 
+      labels = {
+        workload-type = "system"
+        purpose       = "karpenter-and-control-plane"
+      }
 
-  # labels = {
-  #   Environment = "test"
-  #   GithubRepo  = "terraform-aws-eks"
-  #   GithubOrg   = "terraform-aws-modules"
-  # }
-
-  # taints = {
-  #   dedicated = {
-  #     key    = "dedicated"
-  #     value  = "gpuGroup"
-  #     effect = "NO_SCHEDULE"
-  #   }
-  # }
+      taints = {
+        system = {
+          key    = "workload-type"
+          value  = "system"
+          effect = "NO_SCHEDULE"
+        }
+      }
 
     }
   }

@@ -22,12 +22,12 @@ controller:
     limits:
       cpu: 1
       memory: 1Gi
+  # Pin Karpenter to the managed node group (CRITICAL: Karpenter must not run on nodes it manages)
+  nodeSelector:
+    workload-type: "system"
 
-# tolerations:
-# - key: "CriticalAddonsOnly"
-#   operator: "Equal"
-#   value: "true"
-#   effect: "NoSchedule"
-
-# nodeSelector:
-#   node-role.kubernetes.io/system: "true"
+tolerations:
+- key: "workload-type"
+  operator: "Equal"
+  value: "system"
+  effect: "NoSchedule"
