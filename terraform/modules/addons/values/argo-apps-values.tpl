@@ -3,7 +3,9 @@
   targetRevision: "feature/pipeline"
   ref: repo
 
-.argo_defaults: &argo
+applications:
+
+  metrics-server:
     namespace: argocd
     project: default
     syncPolicy:
@@ -12,12 +14,6 @@
         selfHeal: true
       syncOptions:
         - CreateNamespace=true
-        - Replace=true
-
-applications:
-
-  metrics-server:
-    <<: *argo
     source:
       chart: metrics-server
       repoURL: https://kubernetes-sigs.github.io/metrics-server/
@@ -30,7 +26,15 @@ applications:
       server: https://kubernetes.default.svc
 
   external-secrets-operator:
-    <<: *argo
+    namespace: argocd
+    project: default
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+        - Replace=true
     sources:
       - chart: external-secrets
         repoURL: https://charts.external-secrets.io/
@@ -47,7 +51,14 @@ applications:
       server: https://kubernetes.default.svc
 
   external-secrets-manifests:
-    <<: *argo
+    namespace: argocd
+    project: default
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
     source:
       path: K8s/eso
       repoURL: https://github.com/abdelrahman-shebl/Robot-Shop-Microservices.git
@@ -57,11 +68,18 @@ applications:
       server: https://kubernetes.default.svc
     metadata:
       annotations:
-        argocd.argoproj.io/sync-wave: "-3"
+        argocd.argoproj.io/sync-wave: "0"
     
 
   traefik:
-    <<: *argo
+    namespace: argocd
+    project: default
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
     sources:
       - chart: traefik
         repoURL: https://traefik.github.io/charts
@@ -79,7 +97,14 @@ applications:
       server: https://kubernetes.default.svc
 
   external-dns:
-    <<: *argo
+    namespace: argocd
+    project: default
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
     sources:
       - chart: external-dns
         repoURL: https://kubernetes-sigs.github.io/external-dns/
@@ -105,7 +130,14 @@ applications:
       server: https://kubernetes.default.svc
 
   kube-prometheus-stack:
-    <<: *argo
+    namespace: argocd
+    project: default
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
     sources:
       - chart: kube-prometheus-stack
         repoURL: https://prometheus-community.github.io/helm-charts
@@ -135,7 +167,14 @@ applications:
 
 
   prometheus-mysql-exporter:
-    <<: *argo
+    namespace: argocd
+    project: default
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
     sources:
       - chart: prometheus-mysql-exporter
         repoURL: ghcr.io/prometheus-community/charts
@@ -152,7 +191,14 @@ applications:
       server: https://kubernetes.default.svc
 
   prometheus-mongodb-exporter:
-    <<: *argo
+    namespace: argocd
+    project: default
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
     sources:
       - chart: prometheus-mongodb-exporter
         repoURL: ghcr.io/prometheus-community/charts
@@ -171,7 +217,14 @@ applications:
 
 
   defectdojo:
-    <<: *argo
+    namespace: argocd
+    project: default
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
     sources:
       - chart: defectdojo
         repoURL: https://raw.githubusercontent.com/DefectDojo/django-DefectDojo/helm-charts
@@ -203,7 +256,14 @@ applications:
 
 
   opencost:
-    <<: *argo
+    namespace: argocd
+    project: default
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
     sources:
       - chart: opencost
         repoURL: https://opencost.github.io/opencost-helm-chart
@@ -231,7 +291,14 @@ applications:
       server: https://kubernetes.default.svc
 
   goldilocks:
-    <<: *argo
+    namespace: argocd
+    project: default
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
     sources:
       - chart: goldilocks
         repoURL: https://charts.fairwinds.com/stable
@@ -256,7 +323,14 @@ applications:
       server: https://kubernetes.default.svc
 
   robot-shop:
-    <<: *argo
+    namespace: argocd
+    project: default
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
     sources:
       - path: helm/robot-shop
         repoURL: https://github.com/abdelrahman-shebl/Robot-Shop-Microservices.git
