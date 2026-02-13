@@ -281,7 +281,7 @@ applications:
             - $repo/helm/robot-shop/values.yaml
             - $repo/helm/robot-shop/values-${env}.yaml
           parameters:
-            - name: "web.ingress.host"
+            - name: "ingress.host"
               value: "${domain}"
       - <<: *repo_link
     metadata:
