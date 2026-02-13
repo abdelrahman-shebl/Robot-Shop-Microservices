@@ -139,6 +139,8 @@ applications:
       syncOptions:
         - CreateNamespace=true
         - ServerSideApply=true
+        - Replace=true
+        - SkipDryRunOnMissingResource=true
     sources:
       - chart: kube-prometheus-stack
         repoURL: https://prometheus-community.github.io/helm-charts
