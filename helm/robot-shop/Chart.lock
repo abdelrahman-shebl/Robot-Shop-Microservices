@@ -4,10 +4,10 @@ dependencies:
   version: 0.1.0
 - name: redis
   repository: https://charts.bitnami.com/bitnami
-  version: 24.0.7
+  version: 24.1.6
 - name: rabbitmq
   repository: https://charts.bitnami.com/bitnami
-  version: 14.0.0
+  version: 16.0.14
 - name: user
   repository: file://./charts/user
   version: 0.1.0
@@ -38,5 +38,5 @@ dependencies:
 - name: payment
   repository: file://./charts/payment
   version: 0.1.0
-digest: sha256:bb75186b8274a50ab062d286c97ad28edbff782319e1f8038ea1534487d850c9
-generated: "2026-02-12T07:11:57.969716659+02:00"
+digest: sha256:08e72469742d17d6a82a8cb801522a86090b5f7f716d0d9d113a16131246e052
+generated: "2026-02-13T09:15:49.882984438+02:00"
