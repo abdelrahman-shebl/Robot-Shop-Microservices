@@ -5,26 +5,6 @@
 
 applications:
 
-  metrics-server:
-    namespace: argocd
-    project: default
-    syncPolicy:
-      automated:
-        prune: true
-        selfHeal: true
-      syncOptions:
-        - CreateNamespace=true
-    source:
-      chart: metrics-server
-      repoURL: https://kubernetes-sigs.github.io/metrics-server/
-      targetRevision: "3.13.0"
-    metadata:
-      annotations:
-        argocd.argoproj.io/sync-wave: "-4"
-    destination:
-      namespace: kube-system
-      server: https://kubernetes.default.svc
-
   external-secrets-operator:
     namespace: argocd
     project: default

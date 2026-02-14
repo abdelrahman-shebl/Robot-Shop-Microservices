@@ -17,6 +17,10 @@ resource "helm_release" "karpenter" {
 
   namespace  = "karpenter"
   create_namespace = true
+  
+  timeout = 600  # 10 minutes
+  wait    = true
+  
   values = [
     templatefile("${path.module}/values/karpenter-values.tpl", {
       cluster_name   = var.cluster_name

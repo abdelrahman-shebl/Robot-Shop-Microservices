@@ -23,7 +23,7 @@ module "karpenter_infra" {
 }
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 21.0"
+  version = "21.15.1"
 
   name    = var.cluster_name
   kubernetes_version = var.eks_version
@@ -41,6 +41,7 @@ module "eks" {
   
   eks_managed_node_groups = {
     karpenter_node_group = {
+      create       = true
        name            = "karpenter-node-group"
       min_size     = 1
       max_size     = 2
@@ -65,6 +66,7 @@ module "eks" {
     }
   }
 
+
   endpoint_public_access  = true
   endpoint_private_access = false
 
@@ -82,12 +84,48 @@ module "eks" {
       before_compute = true
     }
     coredns = {
-      before_compute = true
+      configuration_values = jsonencode({
+        tolerations = [
+          {
+            key      = "workload-type"
+            operator = "Equal"
+            value    = "system"
+            effect   = "NoSchedule"
+          }
+        ]
+      })
     }
     eks-pod-identity-agent = {
       before_compute = true
     }
+    aws-ebs-csi-driver = {
+      configuration_values = jsonencode({
+        controller = {
+          tolerations = [
+            {
+              key      = "workload-type"
+              operator = "Equal"
+              value    = "system"
+              effect   = "NoSchedule"
+            }
+          ]
+        }
+      })
+    }
+    metrics-server = {
+      configuration_values = jsonencode({
+        tolerations = [
+          {
+            key      = "workload-type"
+            operator = "Equal"
+            value    = "system"
+            effect   = "NoSchedule"
+          }
+        ]
+      })
+    }
   }
+  # depends_on = [ module.vpc ]
 
 }
 
@@ -122,7 +160,8 @@ module "karpenter_chart_and_crds" {
   source         = "./modules/karpenter"
   queue_name     = module.karpenter_infra.queue_name
   cluster_name   = var.cluster_name
-  karpenter_role = module.karpenter_infra.iam_role_name
+  karpenter_role = module.karpenter_infra.node_iam_role_name
+  depends_on = [ module.eks ]
 
 }
 
@@ -130,15 +169,18 @@ module "karpenter_chart_and_crds" {
 module "opencost_infra" {
   source       = "./modules/opencost"
   cluster_name = var.cluster_name
+  depends_on = [ module.eks ]
 }
 module "edns_infra" {
   source       = "./modules/edns"
   cluster_name = var.cluster_name
+  depends_on = [ module.eks ]
 }
 # add eso files
 module "eso_fra" {
   source       = "./modules/eso"
   cluster_name = var.cluster_name
+  depends_on = [ module.eks ]
 }
 module "ssm" {
   source  = "./modules/ssm"
@@ -183,6 +225,7 @@ module "addons" {
   cluster_name           = var.cluster_name
   region                 = var.region
   cloudIntegrationSecret = module.opencost_infra.cloudIntegrationSecret
+  depends_on = [ module.eks ]
 }
 
 
