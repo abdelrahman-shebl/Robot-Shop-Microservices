@@ -1,0 +1,39 @@
+# cert-manager configuration
+# Using DNS-01 challenge with Route53 for reliable certificate issuance
+
+installCRDs: true
+
+# Pod Identity for Route53 access (no need for static credentials)
+serviceAccount:
+  create: true
+  name: cert-manager-sa
+
+# Tolerations for system node
+tolerations:
+  - key: "workload-type"
+    operator: "Equal"
+    value: "system"
+    effect: "NoSchedule"
+
+webhook:
+  tolerations:
+    - key: "workload-type"
+      operator: "Equal"
+      value: "system"
+      effect: "NoSchedule"
+
+cainjector:
+  tolerations:
+    - key: "workload-type"
+      operator: "Equal"
+      value: "system"
+      effect: "NoSchedule"
+
+# Resource limits
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi

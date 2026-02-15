@@ -1,0 +1,14 @@
+# Certificate for OpenCost
+# Deployed in opencost namespace
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: opencost-tls
+  namespace: opencost
+spec:
+  secretName: opencost-tls
+  issuerRef:
+    name: letsencrypt-dns
+    kind: ClusterIssuer
+  dnsNames:
+    - opencost.shebl22.me

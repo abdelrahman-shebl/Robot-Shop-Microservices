@@ -9,22 +9,12 @@ service:
   enabled: true
   type: LoadBalancer
 
+# HTTP to HTTPS redirect only - cert-manager handles certificates
 additionalArguments:
-  - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
-  - "--certificatesresolvers.letsencrypt.acme.email=sheblabdo00@gmail.com"
-  - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
   - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
   - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
   - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
 
+# No persistence needed - cert-manager stores certs as K8s secrets
 persistence:
-  enabled: true
-  name: data
-  accessMode: ReadWriteOnce
-  size: 128Mi
-  storageClass: "gp3"  
-  path: /data
-
-# Fix permissions for non-root Traefik user (uid 65532)
-podSecurityContext:
-  fsGroup: 65532
+  enabled: false

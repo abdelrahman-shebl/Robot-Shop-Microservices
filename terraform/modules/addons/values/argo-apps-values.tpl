@@ -5,6 +5,53 @@
 
 applications:
 
+  # cert-manager - must deploy first for TLS certificates
+  cert-manager:
+    namespace: argocd
+    project: default
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+    sources:
+      - chart: cert-manager
+        repoURL: https://charts.jetstack.io
+        targetRevision: "v1.17.1"
+        helm:
+          valueFiles:
+            - $repo/terraform/modules/addons/values/cert-manager-values.yaml
+      - <<: *repo_link
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-5"
+    destination:
+      namespace: cert-manager
+      server: https://kubernetes.default.svc
+
+  # cert-manager manifests (ClusterIssuer + Certificates)
+  cert-manager-manifests:
+    namespace: argocd
+    project: default
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+        - SkipDryRunOnMissingResource=true
+    source:
+      path: K8s/cert-manager
+      repoURL: https://github.com/abdelrahman-shebl/Robot-Shop-Microservices.git
+      targetRevision: "feature/pipeline"
+    destination:
+      namespace: cert-manager
+      server: https://kubernetes.default.svc
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-4"
+
   external-secrets-operator:
     namespace: argocd
     project: default
@@ -25,7 +72,7 @@ applications:
       - <<: *repo_link
     metadata:
       annotations:
-        argocd.argoproj.io/sync-wave: "-4"
+        argocd.argoproj.io/sync-wave: "-3"
     destination:
       namespace: eso
       server: https://kubernetes.default.svc
@@ -71,7 +118,7 @@ applications:
       - <<: *repo_link
     metadata:
       annotations:
-        argocd.argoproj.io/sync-wave: "-4"
+        argocd.argoproj.io/sync-wave: "-3"
     destination:
       namespace: traefik
       server: https://kubernetes.default.svc
@@ -104,7 +151,7 @@ applications:
       - <<: *repo_link
     metadata:
       annotations:
-        argocd.argoproj.io/sync-wave: "-4"
+        argocd.argoproj.io/sync-wave: "-3"
     destination:
       namespace: edns
       server: https://kubernetes.default.svc

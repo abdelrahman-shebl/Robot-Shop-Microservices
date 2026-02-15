@@ -37,6 +37,24 @@ module "karpenter_infra" {
     }
   }
   depends_on = [ module.eks ]
+}
+
+module "cert_manager_pod_identity" {
+  source = "terraform-aws-modules/eks-pod-identity/aws"
+
+  name = "cert-manager"
+
+  attach_cert_manager_policy    = true
+  cert_manager_hosted_zone_arns = [ module.zone.arn ]
+  
+  associations = {
+    this = {
+      cluster_name    = "${var.cluster_name}"
+      namespace       = "cert-manager"
+      service_account = "cert-manager-sa"
+    }
+  }
+  depends_on = [ module.eks ]
 } 
 
 module "ebs_csi_infra" {
