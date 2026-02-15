@@ -24,3 +24,7 @@ persistence:
   size: 128Mi
   storageClass: "gp3"  
   path: /data
+
+# Fix permissions for non-root Traefik user (uid 65532)
+podSecurityContext:
+  fsGroup: 65532

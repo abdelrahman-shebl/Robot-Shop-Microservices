@@ -5,7 +5,6 @@ module "karpenter_infra" {
 
   cluster_name = var.cluster_name
 
-
   create_pod_identity_association = true
   
   namespace       = "karpenter"
@@ -20,6 +19,8 @@ module "karpenter_infra" {
   tags = {
     Environment = "production"
   }
+  
+  depends_on = [ module.eks ]
 }
  module "external_dns_pod_identity" {
   source = "terraform-aws-modules/eks-pod-identity/aws"
@@ -37,11 +38,6 @@ module "karpenter_infra" {
   }
   depends_on = [ module.eks ]
 } 
-
-module "ebs_csi_infra" {
-  source       = "./modules/ebs-csi"
-  cluster_name = var.cluster_name
-}
 
 module "ebs_csi_infra" {
   source  = "terraform-aws-modules/eks-pod-identity/aws"
@@ -248,7 +244,7 @@ module "addons" {
   cluster_name           = var.cluster_name
   region                 = var.region
   cloudIntegrationSecret = module.opencost_infra.cloudIntegrationSecret
-  depends_on = [ module.eks ]
+  depends_on = [ module.eks, module.karpenter_chart_and_crds ]
 }
 
 
