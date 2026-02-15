@@ -18,4 +18,9 @@ additionalArguments:
   - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
 
 persistence:
-  enabled: false
+  enabled: true
+  name: data
+  accessMode: ReadWriteOnce
+  size: 128Mi
+  storageClass: "gp3"  
+  path: /data

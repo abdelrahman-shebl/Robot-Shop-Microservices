@@ -34,9 +34,6 @@ controller:
     limits:
       cpu: 500m
       memory: 512Mi
-  # Pin to managed node group reserved for system workloads
-  nodeSelector:
-    workload-type: "system"
   # Good metrics for debugging, keeps resource cost low
   metrics:
     enabled: true 
@@ -54,9 +51,13 @@ server:
     limits:
       cpu: 200m
       memory: 256Mi
-  # Pin to managed node group reserved for system workloads
-  nodeSelector:
-    workload-type: "system"
+  
+  # Run in insecure mode - Traefik handles TLS termination
+  insecure: true
+  
+  # Service ports configuration - expose on port 80 only
+  service:
+    port: 80
   
   # KEEP YOUR INGRESS CONFIG
   ingress:
@@ -65,8 +66,12 @@ server:
     ingressClassName: traefik
     annotations:
       traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      traefik.ingress.kubernetes.io/backend-protocol: "http"
     hosts:
       - host: argocd.${domain}
+    # Backend should use HTTP (port 80), not HTTPS
+    https: false
 
 # Keep ApplicationSet, it's tiny and useful
 applicationSet:
@@ -84,9 +89,6 @@ notifications:
   enabled: false
 
 global:
-  nodeSelector:
-    workload-type: "system"
-
   tolerations:
   - key: "workload-type"
     operator: "Equal"

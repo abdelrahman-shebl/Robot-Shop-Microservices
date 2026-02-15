@@ -76,13 +76,15 @@ resource "kubectl_manifest" "karpenter_node_class" {
   depends_on = [helm_release.karpenter]
 }
 
-resource "kubectl_manifest" "karpenter_node_pool" {
+# Spot Priority NodePool (default choice)
+resource "kubectl_manifest" "karpenter_node_pool_spot" {
   yaml_body = <<-YAML
     apiVersion: karpenter.sh/v1
     kind: NodePool
     metadata:
-      name: default
+      name: spot-pool
     spec:
+      weight: 100  # Higher priority
 
       template:
         spec:
@@ -98,26 +100,74 @@ resource "kubectl_manifest" "karpenter_node_pool" {
             
             - key: karpenter.sh/capacity-type
               operator: In
-              values: ["spot", "on-demand"]
+              values: ["spot"]
 
             - key: node.kubernetes.io/instance-type 
               operator: In
               values: 
-                - "t3.medium"      # Baseline: 1 vCPU, 4GB RAM
-                - "t3.large"       # Better baseline: 2 vCPU, 8GB RAM
-                - "c7i-flex.large" # Compute optimized: 2 vCPU, 8GB RAM
-                - "m7i-flex.large" # Memory optimized: 2 vCPU, 8GB RAM 
+                - "t3.small"
+                - "t3.large"
+                - "c7i-flex.large"
+                - "m7i-flex.large"
+
+            # If a node is draining but pods refuse to leave, 
+            # Karpenter will forcefully delete the node after 15 minutes.
+            # terminationGracePeriod: 15m
 
       limits:
         cpu: 50
         memory: 200Gi
 
       disruption:
-
         consolidationPolicy: WhenEmptyOrUnderutilized
-        
-        consolidateAfter: 300s
-        
+        consolidateAfter: 30s
+        expireAfter: 168h
+  YAML
+
+  depends_on = [kubectl_manifest.karpenter_node_class]
+}
+
+# On-Demand Fallback NodePool
+resource "kubectl_manifest" "karpenter_node_pool_ondemand" {
+  yaml_body = <<-YAML
+    apiVersion: karpenter.sh/v1
+    kind: NodePool
+    metadata:
+      name: ondemand-pool
+    spec:
+      weight: 10  # Lower priority - only used if spot unavailable
+
+      template:
+        spec:
+          nodeClassRef:
+            group: karpenter.k8s.aws
+            kind: EC2NodeClass
+            name: default
+
+          requirements:
+            - key: kubernetes.io/arch
+              operator: In
+              values: ["amd64"]
+            
+            - key: karpenter.sh/capacity-type
+              operator: In
+              values: ["on-demand"]
+
+            - key: node.kubernetes.io/instance-type 
+              operator: In
+              values: 
+                - "t3.medium"
+                - "t3.large"
+                - "c7i-flex.large"
+                - "m7i-flex.large"
+
+      limits:
+        cpu: 50
+        memory: 200Gi
+
+      disruption:
+        consolidationPolicy: WhenEmptyOrUnderutilized
+        consolidateAfter: 30s
         expireAfter: 168h
   YAML
 

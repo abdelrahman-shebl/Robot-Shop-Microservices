@@ -21,6 +21,37 @@ module "karpenter_infra" {
     Environment = "production"
   }
 }
+ module "external_dns_pod_identity" {
+  source = "terraform-aws-modules/eks-pod-identity/aws"
+
+  name = "external-dns"
+
+  attach_external_dns_policy    = true
+  external_dns_hosted_zone_arns = [ module.zone.arn ]
+  associations = {
+    this = {
+      cluster_name    = "${var.cluster_name}"
+      namespace       = "edns"
+      service_account = "edns-sa"
+    }
+  }
+  depends_on = [ module.eks ]
+} 
+
+module "ebs_csi_infra" {
+  source       = "./modules/ebs-csi"
+  cluster_name = var.cluster_name
+}
+
+module "ebs_csi_infra" {
+  source  = "terraform-aws-modules/eks-pod-identity/aws"
+  version = "2.7.0"
+
+  name = "${var.cluster_name}-ebs-csi"
+
+  # Automatically attaches the required permissions for EBS
+  attach_aws_ebs_csi_policy = true
+}
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "21.15.1"
@@ -95,10 +126,26 @@ module "eks" {
         ]
       })
     }
+    metrics-server = {
+      configuration_values = jsonencode({
+        tolerations = [
+          {
+            key      = "workload-type"
+            operator = "Equal"
+            value    = "system"
+            effect   = "NoSchedule"
+          }
+        ]
+      })
+    }
     eks-pod-identity-agent = {
       before_compute = true
     }
     aws-ebs-csi-driver = {
+      pod_identity_association = [{
+        role_arn        = module.ebs_csi_infra.iam_role_arn
+        service_account = "ebs-csi-controller-sa"
+      }]
       configuration_values = jsonencode({
         controller = {
           tolerations = [
@@ -110,18 +157,6 @@ module "eks" {
             }
           ]
         }
-      })
-    }
-    metrics-server = {
-      configuration_values = jsonencode({
-        tolerations = [
-          {
-            key      = "workload-type"
-            operator = "Equal"
-            value    = "system"
-            effect   = "NoSchedule"
-          }
-        ]
       })
     }
   }
@@ -171,49 +206,37 @@ module "opencost_infra" {
   cluster_name = var.cluster_name
   depends_on = [ module.eks ]
 }
-module "edns_infra" {
-  source       = "./modules/edns"
-  cluster_name = var.cluster_name
+
+module "external_secrets_pod_identity" {
+  source = "terraform-aws-modules/eks-pod-identity/aws"
+  name   = "external-secrets"
+
+  # build the policy with the Get/List/Describe actions
+  attach_external_secrets_policy = true
+
+  # Setting these to ["*"] perfectly matches "Resource": ["*"] in your JSON
+  # external_secrets_secrets_manager_arns = ["*"]
+  external_secrets_ssm_parameter_arns   = module.ssm.parameter_arns
+  # external_secrets_kms_key_arns         = ["*"]
+  
+  # ensure no "CreateSecret" actions are added
+  external_secrets_create_permission    = false
+
+  associations = {
+    this = {
+      cluster_name    = "${var.cluster_name}"
+      namespace       = "eso"
+      service_account = "eso-sa"
+    }
+  }
   depends_on = [ module.eks ]
 }
-# add eso files
-module "eso_fra" {
-  source       = "./modules/eso"
-  cluster_name = var.cluster_name
-  depends_on = [ module.eks ]
-}
+
+
 module "ssm" {
   source  = "./modules/ssm"
-  # MySQL Root Credentials
-  MYSQL_ROOT_PASSWORD = local.secrets.MYSQL_ROOT_PASSWORD
-
-  # Shipping MySQL Credentials
-  SHIPPING_MYSQL_USER     = local.secrets.SHIPPING_MYSQL_USER
-  SHIPPING_MYSQL_PASSWORD = local.secrets.SHIPPING_MYSQL_PASSWORD
-  SHIPPING_MYSQL_DATABASE = local.secrets.SHIPPING_MYSQL_DATABASE
-
-  # Ratings MySQL Credentials
-  RATINGS_MYSQL_USER     = local.secrets.RATINGS_MYSQL_USER
-  RATINGS_MYSQL_PASSWORD = local.secrets.RATINGS_MYSQL_PASSWORD
-  RATINGS_MYSQL_DATABASE = local.secrets.RATINGS_MYSQL_DATABASE
-
-
-  # MongoDB Root Credentials
-  MONGO_INITDB_ROOT_USERNAME = local.secrets.MONGO_INITDB_ROOT_USERNAME
-  MONGO_INITDB_ROOT_PASSWORD = local.secrets.MONGO_INITDB_ROOT_PASSWORD
-  # Catalog MongoDB Credentials
-  CATALOGUE_MONGO_USER     = local.secrets.CATALOGUE_MONGO_USER
-  CATALOGUE_MONGO_PASSWORD = local.secrets.CATALOGUE_MONGO_PASSWORD
-  CATALOGUE_MONGO_DATABASE = local.secrets.CATALOGUE_MONGO_DATABASE
-
-  # Users MongoDB Credentials
-  USER_MONGO_USER     = local.secrets.USER_MONGO_USER
-  USER_MONGO_PASSWORD = local.secrets.USER_MONGO_PASSWORD
-  USER_MONGO_DATABASE = local.secrets.USER_MONGO_DATABASE
-
-  # Dojo Credentials
-  DD_ADMIN_USER     = local.secrets.DD_ADMIN_USER
-  DD_ADMIN_PASSWORD = local.secrets.DD_ADMIN_PASSWORD
+# Pass the entire map at once!
+  secrets_map = local.secrets
 }
 
 
@@ -258,4 +281,17 @@ module "zone" {
 #   capacity_type  = "ON_DEMAND"
 
 
+# }
+# module "edns_infra" {
+#   source       = "./modules/edns"
+#   cluster_name = var.cluster_name
+#   depends_on = [ module.eks ]
+# }
+
+
+# # add eso files
+# module "eso_fra" {
+#   source       = "./modules/eso"
+#   cluster_name = var.cluster_name
+#   depends_on = [ module.eks ]
 # }

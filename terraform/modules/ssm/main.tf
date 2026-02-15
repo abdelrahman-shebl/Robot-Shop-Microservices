@@ -4,17 +4,17 @@ resource "aws_ssm_parameter" "mysql_creds" {
   overwrite = true
   value = jsonencode({
     # MySQL Root Credentials
-    MYSQL_ROOT_PASSWORD = var.MYSQL_ROOT_PASSWORD
+    MYSQL_ROOT_PASSWORD = var.secrets_map.MYSQL_ROOT_PASSWORD
 
     # Shipping MySQL Credentials
-    SHIPPING_MYSQL_USER     = var.SHIPPING_MYSQL_USER
-    SHIPPING_MYSQL_PASSWORD = var.SHIPPING_MYSQL_PASSWORD
-    SHIPPING_MYSQL_DATABASE = var.SHIPPING_MYSQL_DATABASE
+    SHIPPING_MYSQL_USER     = var.secrets_map.SHIPPING_MYSQL_USER
+    SHIPPING_MYSQL_PASSWORD = var.secrets_map.SHIPPING_MYSQL_PASSWORD
+    SHIPPING_MYSQL_DATABASE = var.secrets_map.SHIPPING_MYSQL_DATABASE
 
     # Ratings MySQL Credentials
-    RATINGS_MYSQL_USER     = var.RATINGS_MYSQL_USER
-    RATINGS_MYSQL_PASSWORD = var.RATINGS_MYSQL_PASSWORD
-    RATINGS_MYSQL_DATABASE = var.RATINGS_MYSQL_DATABASE
+    RATINGS_MYSQL_USER     = var.secrets_map.RATINGS_MYSQL_USER
+    RATINGS_MYSQL_PASSWORD = var.secrets_map.RATINGS_MYSQL_PASSWORD
+    RATINGS_MYSQL_DATABASE = var.secrets_map.RATINGS_MYSQL_DATABASE
 
   })
 }
@@ -26,18 +26,18 @@ resource "aws_ssm_parameter" "mongo_creds" {
   value = jsonencode({
 
     # MongoDB Root Credentials
-    MONGO_INITDB_ROOT_USERNAME = var.MONGO_INITDB_ROOT_USERNAME
-    MONGO_INITDB_ROOT_PASSWORD = var.MONGO_INITDB_ROOT_PASSWORD
+    MONGO_INITDB_ROOT_USERNAME = var.secrets_map.MONGO_INITDB_ROOT_USERNAME
+    MONGO_INITDB_ROOT_PASSWORD = var.secrets_map.MONGO_INITDB_ROOT_PASSWORD
 
     # Catalog MongoDB Credentials
-    CATALOGUE_MONGO_USER     = var.CATALOGUE_MONGO_USER
-    CATALOGUE_MONGO_PASSWORD = var.CATALOGUE_MONGO_PASSWORD
-    CATALOGUE_MONGO_DATABASE = var.CATALOGUE_MONGO_DATABASE
+    CATALOGUE_MONGO_USER     = var.secrets_map.CATALOGUE_MONGO_USER
+    CATALOGUE_MONGO_PASSWORD = var.secrets_map.CATALOGUE_MONGO_PASSWORD
+    CATALOGUE_MONGO_DATABASE = var.secrets_map.CATALOGUE_MONGO_DATABASE
 
     # Users MongoDB Credentials
-    USER_MONGO_USER     = var.USER_MONGO_USER
-    USER_MONGO_PASSWORD = var.USER_MONGO_PASSWORD
-    USER_MONGO_DATABASE = var.USER_MONGO_DATABASE
+    USER_MONGO_USER     = var.secrets_map.USER_MONGO_USER
+    USER_MONGO_PASSWORD = var.secrets_map.USER_MONGO_PASSWORD
+    USER_MONGO_DATABASE = var.secrets_map.USER_MONGO_DATABASE
   })
 }
 
@@ -48,7 +48,7 @@ resource "aws_ssm_parameter" "dojo_creds" {
   value = jsonencode({
 
     # Dojo Credentials
-    DD_ADMIN_USER     = var.DD_ADMIN_USER
-    DD_ADMIN_PASSWORD = var.DD_ADMIN_PASSWORD
+    DD_ADMIN_USER     = var.secrets_map.DD_ADMIN_USER
+    DD_ADMIN_PASSWORD = var.secrets_map.DD_ADMIN_PASSWORD
   })
 }

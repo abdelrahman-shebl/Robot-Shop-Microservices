@@ -17,9 +17,11 @@ django:
     ingressClassName: "traefik"
     annotations:
       traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+      traefik.ingress.kubernetes.io/router.entrypoints: "websecure"
+      traefik.ingress.kubernetes.io/backend-protocol: "http"
+
     hosts:
       - ""
-    tls: []
 
 # Celery Worker: The background processor (this does the heavy lifting, like importing scans and deduplicating findings).
 # 3. Background Workers (Celery)
@@ -41,7 +43,7 @@ postgresql:
   primary:
     persistence:
       enabled: true
-      storageClass: "gp2" # Standard AWS storage
+      storageClass: "gp3" # Standard AWS storage
       size: 1Gi
 
 # 5. The Message Broker (Redis)
@@ -54,6 +56,4 @@ valkey:
     enabled: false 
   primary:
     persistence:
-      enabled: true
-      storageClass: "gp2" 
-      size: 512Mi
+      enabled: false
