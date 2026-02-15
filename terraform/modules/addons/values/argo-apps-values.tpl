@@ -185,6 +185,12 @@ applications:
 
             - name: "grafana.ingress.hosts[0]"
               value: "grafana.${domain}"
+
+            # TLS hosts for cert-manager
+            - name: "prometheus.ingress.tls[0].hosts[0]"
+              value: "prometheus.${domain}"
+            - name: "grafana.ingress.tls[0].hosts[0]"
+              value: "grafana.${domain}"
                                       
 
       - <<: *repo_link
@@ -273,6 +279,10 @@ applications:
 
             - name: "django.ingress.hosts[0]"
               value: "dojo.${domain}"
+
+            # TLS hosts for cert-manager
+            - name: "django.ingress.tls[0].hosts[0]"
+              value: "dojo.${domain}"
                                       
 
       - <<: *repo_link
@@ -312,6 +322,10 @@ applications:
             - name: "opencost.ui.ingress.hosts[0].host"
               value: "opencost.${domain}"
 
+            # TLS hosts for cert-manager
+            - name: "opencost.ui.ingress.tls[0].hosts[0]"
+              value: "opencost.${domain}"
+
       - <<: *repo_link
     metadata:
       annotations:
@@ -342,6 +356,10 @@ applications:
               value: "${cluster_name}"
             
             - name: "dashboard.ingress.hosts[0].host"
+              value: "goldilocks.${domain}"
+
+            # TLS hosts for cert-manager
+            - name: "dashboard.ingress.tls[0].hosts[0]"
               value: "goldilocks.${domain}"
 
       - <<: *repo_link
