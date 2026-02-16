@@ -105,14 +105,14 @@ resource "kubectl_manifest" "karpenter_node_pool_spot" {
             - key: node.kubernetes.io/instance-type 
               operator: In
               values: 
-                - "t3.small"
-                - "t3.large"
-                - "c7i-flex.large"
-                - "m7i-flex.large"
+                - "t3.medium"      # Baseline: 1 vCPU, 4GB RAM
+                - "t3.large"       # Better baseline: 2 vCPU, 8GB RAM
+                - "c7i-flex.large" # Compute optimized: 2 vCPU, 8GB RAM
+                - "m7i-flex.large" # Memory opti
 
             # If a node is draining but pods refuse to leave, 
             # Karpenter will forcefully delete the node after 15 minutes.
-            # terminationGracePeriod: 15m
+            # terminationGracePeriod: 15mmized: 2 vCPU, 8GB RAM 
 
       limits:
         cpu: 50
@@ -120,7 +120,7 @@ resource "kubectl_manifest" "karpenter_node_pool_spot" {
 
       disruption:
         consolidationPolicy: WhenEmptyOrUnderutilized
-        consolidateAfter: 30s
+        consolidateAfter: 10s
         expireAfter: 168h
   YAML
 
@@ -156,10 +156,8 @@ resource "kubectl_manifest" "karpenter_node_pool_ondemand" {
             - key: node.kubernetes.io/instance-type 
               operator: In
               values: 
-                - "t3.medium"
                 - "t3.large"
-                - "c7i-flex.large"
-                - "m7i-flex.large"
+                - "t3.xlarge"
 
       limits:
         cpu: 50
@@ -167,7 +165,7 @@ resource "kubectl_manifest" "karpenter_node_pool_ondemand" {
 
       disruption:
         consolidationPolicy: WhenEmptyOrUnderutilized
-        consolidateAfter: 30s
+        consolidateAfter: 10s
         expireAfter: 168h
   YAML
 

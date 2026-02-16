@@ -8,7 +8,7 @@ metadata:
 spec:
   secretName: argocd-tls
   issuerRef:
-    name: letsencrypt-dns
+    name: letsencrypt-dns-staging
     kind: ClusterIssuer
   dnsNames:
     - argocd.shebl22.me

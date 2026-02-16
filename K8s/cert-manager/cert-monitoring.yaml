@@ -8,7 +8,7 @@ metadata:
 spec:
   secretName: grafana-tls
   issuerRef:
-    name: letsencrypt-dns
+    name: letsencrypt-dns-staging
     kind: ClusterIssuer
   dnsNames:
     - grafana.shebl22.me
@@ -21,7 +21,7 @@ metadata:
 spec:
   secretName: prometheus-tls
   issuerRef:
-    name: letsencrypt-dns
+    name: letsencrypt-dns-staging
     kind: ClusterIssuer
   dnsNames:
     - prometheus.shebl22.me

@@ -8,7 +8,7 @@ metadata:
 spec:
   secretName: opencost-tls
   issuerRef:
-    name: letsencrypt-dns
+    name: letsencrypt-dns-staging
     kind: ClusterIssuer
   dnsNames:
     - opencost.shebl22.me

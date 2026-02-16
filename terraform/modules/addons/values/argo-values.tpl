@@ -29,11 +29,11 @@ controller:
   resources:
     requests:
       # Very efficient, mostly just watches the API
-      cpu: 50m 
-      memory: 128Mi
+      cpu: 100m 
+      memory: 256Mi
     limits:
-      cpu: 500m
-      memory: 512Mi
+      cpu: 1
+      memory: 2Gi
   # Good metrics for debugging, keeps resource cost low
   metrics:
     enabled: true 
@@ -53,11 +53,11 @@ server:
       memory: 256Mi
   
   # Run in insecure mode - Traefik handles TLS termination
-  insecure: true
+  #insecure: true #-----><------#
   
   # Service ports configuration - expose on port 80 only
-  service:
-    port: 80
+  # service:
+  #   port: 80   #-----><------#
   
   # KEEP YOUR INGRESS CONFIG
   ingress:
@@ -66,7 +66,7 @@ server:
     ingressClassName: traefik
     annotations:
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
-      traefik.ingress.kubernetes.io/backend-protocol: "http"
+      # traefik.ingress.kubernetes.io/backend-protocol: "http"
     hosts:
       - host: argocd.${domain}
     # TLS certificate from cert-manager
@@ -76,7 +76,7 @@ server:
           - argocd.${domain}
         secretName: argocd-tls
     # Backend should use HTTP (port 80), not HTTPS
-    https: false
+   # https: false  #-----><------#
 
 # Keep ApplicationSet, it's tiny and useful
 applicationSet:
