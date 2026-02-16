@@ -87,6 +87,10 @@ applicationSet:
       memory: 32Mi
 
 configs:
+  params:
+    server.insecure: true
+  cm:
+    url: https://argocd.${domain}
   secret:
     argocdServerAdminPassword: "$2a$10$MVBkBkAxErFWaBpXA4Ltz.Kiwhcz0CkNmVZZgZPa/03JpykN50BVO"
 

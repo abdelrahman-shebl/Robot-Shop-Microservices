@@ -100,9 +100,3 @@ grafana:
         gnetId: 15877
         revision: 1
         datasource: Prometheus
-
-prometheusOperator:
-  admissionWebhooks:
-    enabled: false
-    patch: null
-        
