@@ -1,6 +1,6 @@
-.image: &tag # Define a reusable image configuration (using YAML anchors)
-  repository: shebl22
-  version: a0ecd40a2903459c8f65d57c9fe6c53a1c8ecd9d
+.image: &tag
+  repository: shebl22 # Define a reusable image configuration (using YAML anchors)
+  version: 79d1e40ed20cf0e21d0f90f9114ce4cc63ec6676
 redis:
   enabled: true
   fullnameOverride: redis
