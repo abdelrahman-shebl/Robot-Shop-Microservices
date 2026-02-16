@@ -36,6 +36,31 @@ resource "helm_release" "argocd-apps" {
   ]
 }
 
+resource "terraform_data" "cleanup_load_balancers" {
+  triggers_replace = {
+    cluster_name = var.cluster_name
+  }
+
+  # Hook runs BEFORE argocd-apps is destroyed
+  depends_on = [
+    helm_release.argocd-apps
+  ]
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+      echo "Deleting Ingress resources..."
+      kubectl delete ingress --all --all-namespaces --ignore-not-found=true --timeout=5m || true
+      
+      echo "Deleting LoadBalancer Services (Traefik)..."
+      kubectl get svc -A | grep LoadBalancer | awk '{print "kubectl delete svc " $2 " -n " $1}' | sh || true
+      
+      echo "Waiting 45 seconds for AWS Load Balancer Controller to process..."
+      sleep 45
+    EOT
+  }
+}
+
 resource "kubernetes_storage_class" "gp3" {
   metadata {
     name = "gp3"
@@ -50,5 +75,41 @@ resource "kubernetes_storage_class" "gp3" {
     iops       = "3000"
     throughput = "125"
     encrypted  = "true"
+  }
+}
+
+resource "terraform_data" "cleanup_ebs_volumes" {
+  triggers_replace = {
+    cluster_name = var.cluster_name
+  }
+
+  # Hook runs BEFORE the EKS cluster (and its addons) or StorageClass are destroyed
+  depends_on = [
+    kubernetes_storage_class.gp3
+  ]
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+      echo "Deleting all PersistentVolumeClaims..."
+      kubectl delete pvc --all --all-namespaces --ignore-not-found=true --timeout=5m || true
+      
+      echo "Waiting 30 seconds for EBS CSI driver to detach volumes..."
+      sleep 30
+      
+      echo "Sweeping AWS for orphaned 'available' EBS volumes..."
+      CLUSTER_NAME="${self.triggers_replace.cluster_name}"
+      VOLUME_IDS=$(aws ec2 describe-volumes \
+        --filters "Name=status,Values=available" "Name=tag:kubernetes.io/cluster/$CLUSTER_NAME,Values=owned" \
+        --query "Volumes[*].VolumeId" \
+        --output text)
+        
+      if [ -n "$VOLUME_IDS" ]; then
+        for vol in $VOLUME_IDS; do
+          echo "Forcefully deleting orphaned volume: $vol"
+          aws ec2 delete-volume --volume-id "$vol" || true
+        done
+      fi
+    EOT
   }
 }

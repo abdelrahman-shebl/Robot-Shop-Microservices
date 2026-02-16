@@ -3,7 +3,7 @@ module "karpenter_infra" {
   source  = "terraform-aws-modules/eks/aws//modules/karpenter"
   version = "21.15.1" 
 
-  cluster_name = var.cluster_name
+  cluster_name =  module.eks.cluster_name #var.cluster_name
 
   create_pod_identity_association = true
   
@@ -31,7 +31,7 @@ module "karpenter_infra" {
   external_dns_hosted_zone_arns = [ module.zone.arn ]
   associations = {
     this = {
-      cluster_name    = "${var.cluster_name}"
+      cluster_name    = "${module.eks.cluster_name}"
       namespace       = "edns"
       service_account = "edns-sa"
     }
@@ -49,7 +49,7 @@ module "cert_manager_pod_identity" {
   
   associations = {
     this = {
-      cluster_name    = "${var.cluster_name}"
+      cluster_name    = "${module.eks.cluster_name }"
       namespace       = "cert-manager"
       service_account = "cert-manager-sa"
     }
@@ -61,7 +61,7 @@ module "ebs_csi_infra" {
   source  = "terraform-aws-modules/eks-pod-identity/aws"
   version = "2.7.0"
 
-  name = "${var.cluster_name}-ebs-csi"
+  name = "${module.eks.cluster_name}-ebs-csi"
 
   # Automatically attaches the required permissions for EBS
   attach_aws_ebs_csi_policy = true
@@ -92,7 +92,7 @@ module "eks" {
       max_size     = 2
       desired_size = 1
 
-      instance_types = ["c7i-flex.large"]
+      instance_types = ["t3.small"]  #c7i-flex.large
       capacity_type  = "ON_DEMAND"
 
       labels = {
@@ -208,7 +208,7 @@ module "vpc" {
 module "karpenter_chart_and_crds" {
   source         = "./modules/karpenter"
   queue_name     = module.karpenter_infra.queue_name
-  cluster_name   = var.cluster_name
+  cluster_name   = module.eks.cluster_name 
   karpenter_role = module.karpenter_infra.node_iam_role_name
   depends_on = [ module.eks ]
 
@@ -259,7 +259,7 @@ module "addons" {
   node_role              = module.karpenter_infra.node_iam_role_name
   domain                 = var.domain
   env                    = var.env
-  cluster_name           = var.cluster_name
+  cluster_name           = module.eks.cluster_name 
   region                 = var.region
   cloudIntegrationSecret = module.opencost_infra.cloudIntegrationSecret
   depends_on = [ module.eks, module.karpenter_chart_and_crds ]

@@ -9,6 +9,51 @@ terraform {
   }
 }
 
+resource "terraform_data" "karpenter_node_cleanup" {
+  # Tie this resource to the lifecycle of your NodePool
+  triggers_replace = {
+    nodepool_name = "spot-pool"
+  }
+
+  # IMPORTANT: This must depend on the manifest so it exists first.
+  # When destroying, Terraform reverses dependencies, so this cleanup 
+  # will execute BEFORE the NodePool manifest or Helm chart is destroyed.
+  depends_on = [
+    kubectl_manifest.karpenter_node_pool_spot
+    # Add your Karpenter Helm release here, e.g., helm_release.karpenter
+  ]
+
+  provisioner "local-exec" {
+    when    = destroy
+    # Using bash to execute a graceful delete, followed by a hard AWS EC2 cleanup
+    command = <<-EOT
+      echo "Attempting graceful teardown of Karpenter NodePool..."
+      # 1. Delete the NodePool and wait for Karpenter to drain/terminate nodes
+      # (Requires your environment to be configured for kubectl access)
+      kubectl delete nodepool spot-pool --ignore-not-found=true --timeout=5m || true
+      
+      echo "Checking for any orphaned EC2 instances..."
+      # 2. Failsafe: Force terminate any EC2 instances still lingering
+      # Karpenter tags instances with 'karpenter.sh/nodepool' by default
+      INSTANCE_IDS=$(aws ec2 describe-instances \
+        --filters "Name=tag:karpenter.sh/nodepool,Values=spot-pool" "Name=instance-state-name,Values=running,pending" \
+        --query "Reservations[*].Instances[*].InstanceId" \
+        --output text)
+        
+      if [ -n "$INSTANCE_IDS" ]; then
+        echo "Forcefully terminating orphaned Karpenter instances: $INSTANCE_IDS"
+        aws ec2 terminate-instances --instance-ids $INSTANCE_IDS
+        
+        # Wait a moment for AWS to register the termination
+        aws ec2 wait instance-terminated --instance-ids $INSTANCE_IDS
+        echo "Orphaned instances terminated."
+      else
+        echo "No orphaned Karpenter instances found. Clean exit."
+      fi
+    EOT
+  }
+}
+
 resource "helm_release" "karpenter" {
   name       = "karpenter"
   repository = "oci://public.ecr.aws/karpenter"
@@ -64,9 +109,8 @@ resource "kubectl_manifest" "karpenter_node_class" {
         {
           deviceName = "/dev/xvda"
           ebs = {
-            volumeSize = "100Gi"
+            volumeSize = "10Gi"
             volumeType = "gp3"
-            encrypted  = true
           }
         }
       ]
@@ -105,6 +149,7 @@ resource "kubectl_manifest" "karpenter_node_pool_spot" {
             - key: node.kubernetes.io/instance-type 
               operator: In
               values: 
+                - "t3.small"
                 - "t3.medium"      # Baseline: 1 vCPU, 4GB RAM
                 - "t3.large"       # Better baseline: 2 vCPU, 8GB RAM
                 - "c7i-flex.large" # Compute optimized: 2 vCPU, 8GB RAM
@@ -112,7 +157,7 @@ resource "kubectl_manifest" "karpenter_node_pool_spot" {
 
             # If a node is draining but pods refuse to leave, 
             # Karpenter will forcefully delete the node after 15 minutes.
-            # terminationGracePeriod: 15mmized: 2 vCPU, 8GB RAM 
+            # terminationGracePeriod: 15
 
       limits:
         cpu: 50
