@@ -1,0 +1,91 @@
+.default_prod_apis_values: &prod_apis_values
+  resources:
+    requests:
+      cpu: "215m"                 
+      memory: "512Mi"
+    limits:
+      cpu: "512m"
+      memory: "750Mi"
+  
+  hpa:
+    minReplicas: 2
+    maxReplicas: 6   
+
+.storage_spec: &storage_spec
+  accessModes: [ "ReadWriteOnce" ]
+  resources:
+    requests:
+      storage: 512Mi
+
+user:
+  
+  <<: *prod_apis_values
+web:
+
+  <<: *prod_apis_values
+
+shipping:
+  
+  <<: *prod_apis_values
+
+
+ratings:
+  <<: *prod_apis_values
+
+
+payment:
+  <<: *prod_apis_values
+
+dispatch:
+  <<: *prod_apis_values
+
+
+catalogue:
+  <<: *prod_apis_values
+
+cart:
+  <<: *prod_apis_values
+
+mysql:
+  replicas: 3
+
+  volumeMounts:
+  - name: mysql-data
+    mountPath: /var/lib/mysql/
+
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-data
+    spec:
+      <<: *storage_spec
+
+mongodb:
+  replicas: 3
+  
+  volumeMounts:
+  - name: mongo-data
+    mountPath: /var/lib/mongodb/
+
+  volumeClaimTemplates:
+  - metadata:
+      name: mongo-data
+    spec:
+      <<: *storage_spec
+
+
+redis:
+  master:
+    persistence:
+      enabled: true
+      size: 512Mi
+      
+  replica:
+    replicaCount: 3
+    persistence:
+      enabled: true
+      size: 512Mi
+
+# rabbitmq values
+rabbitmq:
+  persistence:
+    size: 512Mi

@@ -19,7 +19,7 @@ envFromSecrets:
     valueFrom:
       secretKeyRef:
         key: MONGO_PASSWORD
-        name: mysql-secrets
+        name: mongo-secrets
 Resources:
   requests:
     cpu: "350m"      

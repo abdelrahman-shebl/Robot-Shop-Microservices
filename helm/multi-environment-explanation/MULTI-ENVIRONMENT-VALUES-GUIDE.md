@@ -9,9 +9,10 @@
 2. [Values Hierarchy](#values-hierarchy)
 3. [Creating Environment-Specific Values](#creating-environment-specific-values)
 4. [Partial Overrides (Modify Only Certain Values)](#partial-overrides)
-5. [Complete Examples](#complete-examples)
-6. [Commands and Workflow](#commands-and-workflow)
-7. [Best Practices](#best-practices)
+5. [YAML Anchors & Aliases (DRY Principle)](#yaml-anchors--aliases-dry-principle)
+6. [Complete Examples](#complete-examples)
+7. [Commands and Workflow](#commands-and-workflow)
+8. [Best Practices](#best-practices)
 
 ---
 
@@ -202,6 +203,566 @@ mysql:
 ```
 
 **Result**: Helm merges these with base values. Only `LOG_LEVEL`, `maxReplicas`, `storage`, and `host` change. Everything else stays from base values.yaml.
+
+---
+
+## YAML Anchors & Aliases (DRY Principle)
+
+### The Problem: Code Duplication in Values Files
+
+When managing multiple services with similar configurations, you end up repeating the same values across many services:
+
+```yaml
+# ❌ BAD: Lots of repetition
+user:
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "200m"
+      memory: "128Mi"
+  hpa:
+    minReplicas: 1
+    maxReplicas: 2
+
+web:
+  resources:
+    requests:
+      cpu: "50m"        # ← Duplicate!
+      memory: "64Mi"    # ← Duplicate!
+    limits:
+      cpu: "200m"       # ← Duplicate!
+      memory: "128Mi"   # ← Duplicate!
+  hpa:
+    minReplicas: 1      # ← Duplicate!
+    maxReplicas: 2      # ← Duplicate!
+
+cart:
+  resources:
+    requests:
+      cpu: "50m"        # ← Duplicate again!
+      memory: "64Mi"    # ← Duplicate again!
+    limits:
+      cpu: "200m"       # ← Duplicate again!
+      memory: "128Mi"   # ← Duplicate again!
+  hpa:
+    minReplicas: 1      # ← Duplicate again!
+    maxReplicas: 2      # ← Duplicate again!
+```
+
+**Problems**:
+- **Maintenance nightmare**: Change one value, need to update 5+ places
+- **Error-prone**: Easy to miss a spot and introduce inconsistencies
+- **Bloated files**: values-prod.yaml becomes unreadable
+
+### The Solution: YAML Anchors (`&`) and Aliases (`<<:`)
+
+YAML anchors allow you to define a value once and reuse it multiple times, following the **DRY** (Don't Repeat Yourself) principle.
+
+#### What Are Anchors and Aliases?
+
+- **Anchor (`&`)**: Marks a value with a label you can reuse
+- **Alias (`*`)**: References the anchored value by name
+- **Merge Key (`<<:`)**: Special YAML feature to merge anchored content into the current object
+
+### Basic Syntax
+
+```yaml
+# 1. Define an anchor with &anchor_name
+my_config: &my_config
+  key1: value1
+  key2: value2
+
+# 2. Use an alias with *anchor_name OR merge with <<:
+service1:
+  <<: *my_config        # ← Merges all keys from my_config
+  key3: value3          # ← Can add additional keys
+
+service2:
+  <<: *my_config        # ← Reuses the same config
+```
+
+**Result after YAML parsing**:
+```yaml
+service1:
+  key1: value1
+  key2: value2
+  key3: value3
+
+service2:
+  key1: value1
+  key2: value2
+```
+
+### Real Example: Development Values
+
+#### The Robot Shop values-dev.yaml Pattern
+
+```yaml
+# Step 1: Define an anchor for common dev API values
+default_dev_apis_values: &dev_apis_values
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "200m"
+      memory: "128Mi"
+  hpa:
+    minReplicas: 1
+    maxReplicas: 2
+
+# Step 2: Define another anchor for storage
+storage_spec: &storage_spec
+  accessModes: [ "ReadWriteOnce" ]
+  resources:
+    requests:
+      storage: 200Mi
+
+# Step 3: Reuse anchors with the merge key (<<:)
+user:
+  <<: *dev_apis_values          # ← Includes all dev_apis_values
+
+web:
+  <<: *dev_apis_values          # ← Reuses the same config
+  ingress:
+    host: shebl.com             # ← Additional custom values
+
+cart:
+  <<: *dev_apis_values          # ← Reuses again
+
+shipping:
+  <<: *dev_apis_values          # ← And again!
+
+ratings:
+  <<: *dev_apis_values
+
+payment:
+  <<: *dev_apis_values
+
+dispatch:
+  <<: *dev_apis_values
+
+catalogue:
+  <<: *dev_apis_values
+
+# Database services use the storage anchor
+mysql:
+  replicas: 1
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-data
+    spec:
+      <<: *storage_spec         # ← Reuse storage config
+
+mongodb:
+  replicas: 1
+  volumeClaimTemplates:
+  - metadata:
+      name: mongo-data
+    spec:
+      <<: *storage_spec         # ← Reuse again
+```
+
+#### What It Expands To
+
+After YAML parsing, the above becomes:
+
+```yaml
+user:
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "200m"
+      memory: "128Mi"
+  hpa:
+    minReplicas: 1
+    maxReplicas: 2
+
+web:
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "200m"
+      memory: "128Mi"
+  hpa:
+    minReplicas: 1
+    maxReplicas: 2
+  ingress:
+    host: shebl.com
+
+cart:
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "200m"
+      memory: "128Mi"
+  hpa:
+    minReplicas: 1
+    maxReplicas: 2
+```
+
+**You write 40% less code, but get 100% of the values!**
+
+### Advanced Patterns
+
+#### Pattern 1: Nested Anchors
+
+```yaml
+# Define multiple levels
+standard_resources: &standard_resources
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+
+standard_hpa: &standard_hpa
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPU: 70
+
+standard_service_config: &standard_service_config
+  replicas: 2
+  resources:
+    <<: *standard_resources   # ← Nested anchor reference
+  hpa:
+    <<: *standard_hpa         # ← Nested anchor reference
+
+# Use the composite anchor
+user:
+  <<: *standard_service_config
+
+web:
+  <<: *standard_service_config
+  ingress:
+    host: staging.example.com
+```
+
+#### Pattern 2: Multiple Anchors on One Service
+
+```yaml
+dev_resources: &dev_resources
+  requests:
+    cpu: "50m"
+    memory: "64Mi"
+  limits:
+    cpu: "200m"
+    memory: "128Mi"
+
+dev_hpa: &dev_hpa
+  minReplicas: 1
+  maxReplicas: 2
+
+# Apply multiple anchors
+user:
+  replicas: 1
+  resources:
+    <<: *dev_resources
+  hpa:
+    <<: *dev_hpa
+  env:
+    LOG_LEVEL: debug           # ← Service-specific values
+```
+
+#### Pattern 3: Override Anchored Values
+
+```yaml
+default_config: &default_config
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "200m"
+      memory: "128Mi"
+
+# Merge anchor, then override specific values
+payment:
+  <<: *default_config
+  resources:                   # ← Override the entire resources section
+    requests:
+      cpu: "200m"              # ← Higher for payment service
+      memory: "256Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+```
+
+### Best Practices for Anchors & Aliases
+
+#### 1. **Use Descriptive Anchor Names**
+
+```yaml
+# ✅ GOOD: Clear what this anchor is for
+dev_api_service_defaults: &dev_api_service_defaults
+  resources:
+    requests:
+      cpu: "50m"
+
+# ❌ BAD: Unclear purpose
+defaults: &d
+  resources:
+    requests:
+      cpu: "50m"
+```
+
+#### 2. **Group Anchors at the Top**
+
+```yaml
+# ✅ GOOD: All anchors together
+dev_api_resources: &dev_api_resources
+  resources:
+    requests:
+      cpu: "50m"
+
+dev_hpa: &dev_hpa
+  minReplicas: 1
+  maxReplicas: 2
+
+# Services below use them
+user:
+  <<: *dev_api_resources
+  <<: *dev_hpa
+```
+
+#### 3. **Use Anchors Across Environment Files**
+
+Define in base values.yaml, reuse in all environment files:
+
+```yaml
+# robot-shop/values.yaml (BASE)
+dev_resources: &dev_resources
+  requests:
+    cpu: "50m"
+    memory: "64Mi"
+
+prod_resources: &prod_resources
+  requests:
+    cpu: "500m"
+    memory: "1Gi"
+
+user:
+  <<: *dev_resources  # Default for dev
+
+# values-prod.yaml
+user:
+  <<: *prod_resources # Override with prod resources
+```
+
+#### 4. **Document Your Anchors**
+
+```yaml
+# YAML Anchors defined in this file:
+# - &dev_api_resources: Standard resource requests/limits for dev API services
+# - &storage_spec: Standard storage configuration for databases
+# - &dev_hpa: Standard HPA settings for dev
+
+dev_api_resources: &dev_api_resources
+  resources:
+    requests:
+      cpu: "50m"
+    # ... more values
+```
+
+#### 5. **Avoid Over-Nesting**
+
+```yaml
+# ✅ GOOD: Simple, readable
+base_config: &base_config
+  resources:
+    requests:
+      cpu: "50m"
+
+service:
+  <<: *base_config
+
+# ❌ BAD: Too many levels
+complex_anchor: &complex_anchor
+  nested:
+    deeply:
+      buried:
+        value: "hard to find"
+```
+
+### Common Mistakes
+
+#### Mistake 1: Forgetting the Merge Key
+
+```yaml
+# ❌ WRONG: Alias alone doesn't merge
+user: *dev_config
+
+# ✅ CORRECT: Use merge key to merge keys
+user:
+  <<: *dev_config
+```
+
+#### Mistake 2: Overriding Anchor Values
+
+```yaml
+# The anchor itself is NOT changed by overrides
+dev_config: &dev_config
+  cpu: "50m"
+  memory: "64Mi"
+
+service1:
+  <<: *dev_config
+  cpu: "100m"  # ← This overrides the anchor value for this service only
+
+service2:
+  <<: *dev_config  # ← Still gets original "50m", not "100m"
+```
+
+#### Mistake 3: Mixing Anchor and YAML Comments
+
+```yaml
+# ❌ Be careful with comments on anchors
+resources: &resources  # This is the anchor ← Comment here
+  cpu: "50m"
+
+# ✅ Better: Comment above the anchor
+# Standard resource configuration for all services
+resources: &resources
+  cpu: "50m"
+```
+
+### Anchor Scope and Reusability
+
+#### Within Same File
+
+```yaml
+# values-dev.yaml
+
+dev_defaults: &dev_defaults
+  cpu: "50m"
+
+user:
+  <<: *dev_defaults  # ✅ Works: same file
+
+web:
+  <<: *dev_defaults  # ✅ Works: same file
+```
+
+#### Across Files
+
+```bash
+# File 1: values-base.yaml
+shared_config: &shared_config
+  resources:
+    cpu: "50m"
+
+# File 2: values-prod.yaml
+user:
+  <<: *shared_config  # ❌ WON'T WORK: different files!
+```
+
+**Important**: Anchors are file-scoped. Define them in the same file where they're used, or repeat the anchor definition across files.
+
+### When to Use Anchors
+
+#### ✅ Use Anchors When:
+- Multiple services need identical resource configs
+- You want to reduce file duplication
+- Values are used 3+ times in a file
+- You want a single source of truth for default values
+
+#### ❌ Don't Use Anchors When:
+- Values are only used once or twice
+- The anchor becomes harder to understand than the repetition
+- Across different files (use Helm values hierarchy instead)
+
+### Summary: Anchors vs Helm Values Merging
+
+| Feature | YAML Anchors | Helm Values Merge |
+|---------|--------------|-------------------|
+| **Scope** | Within single file | Across multiple files |
+| **Use Case** | Reduce duplication within a file | Layered environment configs |
+| **Syntax** | `&name` and `<<: *name` | `-f values-prod.yaml` |
+| **Merge Type** | Shallow merge | Deep merge |
+| **Best For** | Repetitive values in one file | Different configs per environment |
+
+### Real-World Comparison
+
+#### Before Anchors (Robot Shop - verbose)
+```yaml
+user:
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "200m"
+      memory: "128Mi"
+
+web:
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "200m"
+      memory: "128Mi"
+
+cart:
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "200m"
+      memory: "128Mi"
+# Repeat for shipping, ratings, payment, dispatch, catalogue...
+```
+**File size**: ~300 lines**
+
+#### After Anchors (current robot-shop approach)
+```yaml
+default_dev_apis_values: &dev_apis_values
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "200m"
+      memory: "128Mi"
+  hpa:
+    minReplicas: 1
+    maxReplicas: 2
+
+user:
+  <<: *dev_apis_values
+
+web:
+  <<: *dev_apis_values
+
+cart:
+  <<: *dev_apis_values
+
+shipping:
+  <<: *dev_apis_values
+
+ratings:
+  <<: *dev_apis_values
+
+payment:
+  <<: *dev_apis_values
+
+dispatch:
+  <<: *dev_apis_values
+
+catalogue:
+  <<: *dev_apis_values
+```
+**File size**: ~60 lines (80% reduction!)
 
 ---
 

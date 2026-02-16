@@ -72,4 +72,8 @@ else
     sed -i '1,3d' /etc/nginx/conf.d/default.conf
 fi
 
+# Change PID file location for non-root user
+sed -i 's|pid.*|pid /tmp/nginx.pid;|g' /etc/nginx/nginx.conf
+
+# Run nginx
 exec nginx-debug -g "daemon off;"

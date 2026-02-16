@@ -1,0 +1,8 @@
+serviceMonitor:
+  enabled: true
+
+podLabels:
+  app: mongodb-exporter
+
+mongodb:
+  uri: "mongodb://mongodb:27017"

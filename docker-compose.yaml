@@ -1,8 +1,9 @@
 services:
   mongodb:
-    build:
-      context: mongo
-    image: ${REPO}/rs-mongodb:${TAG}
+    container_name: rs-mongodb
+    # build:
+    #   context: mongo
+    image: ${REPO}/rs-mongo:${TAG}
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
@@ -18,18 +19,21 @@ services:
       - data-services
 
   redis:
+    container_name: rs-redis
     image: redis:latest
     networks:
       - data-services
 
   rabbitmq:
+    container_name: rs-rabbitmq
     image: rabbitmq:3.8-management-alpine
     networks:
       - message-queue
 
   catalogue:
-    build:
-      context: catalogue
+    container_name: rs-catalogue
+    # build:
+    #   context: catalogue
     image: ${REPO}/rs-catalogue:${TAG}
     depends_on:
       - mongodb
@@ -47,9 +51,10 @@ services:
       timeout: 10s
       retries: 3
 
-  user: #------#
-    build:
-      context: user
+  user:
+    container_name: rs-user
+    # build:
+    #   context: user
     image: ${REPO}/rs-user:${TAG}
     depends_on:
       - mongodb
@@ -69,8 +74,9 @@ services:
       retries: 3
 
   cart:
-    build:
-      context: cart
+    container_name: rs-cart
+    # build:
+    #   context: cart
     image: ${REPO}/rs-cart:${TAG}
     depends_on:
       - redis
@@ -84,9 +90,10 @@ services:
       retries: 3
 
   mysql:
-    build:
-      context: mysql
-    image: ${REPO}/rs-mysql-db:${TAG}
+    container_name: rs-mysql
+    # build:
+    #   context: mysql
+    image: ${REPO}/rs-mysql:${TAG}
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       SHIPPING_MYSQL_USER: ${SHIPPING_MYSQL_USER}
@@ -104,8 +111,9 @@ services:
       - data-services
 
   shipping:
-    build:
-      context: shipping
+    container_name: rs-shipping
+    # build:
+    #   context: shipping
     image: ${REPO}/rs-shipping:${TAG}
     depends_on:
       - mysql
@@ -124,8 +132,9 @@ services:
       retries: 3
 
   ratings:
-    build:
-      context: ratings
+    container_name: rs-ratings
+    # build:
+    #   context: ratings
     image: ${REPO}/rs-ratings:${TAG}
     environment:
       MYSQL_HOST: mysql
@@ -144,8 +153,9 @@ services:
       retries: 3
 
   payment:
-    build:
-      context: payment
+    container_name: rs-payment
+    # build:
+    #   context: payment
     image: ${REPO}/rs-payment:${TAG}
     depends_on:
       - rabbitmq
@@ -158,19 +168,20 @@ services:
       timeout: 10s
       retries: 3
 
-  dispatch: #------#
-    build:
-      context: dispatch
+  dispatch:
+    container_name: rs-dispatch
+    # build:
+    #   context: dispatch
     image: ${REPO}/rs-dispatch:${TAG}
     depends_on:
       - rabbitmq
     networks:
       - message-queue
 
-  web: #------#
-    build:
-      context: web
-
+  web:
+    container_name: rs-web
+    # build:
+    #   context: web
     image: ${REPO}/rs-web:${TAG}
     depends_on:
       - catalogue
@@ -187,10 +198,6 @@ services:
       interval: 10s
       timeout: 10s
       retries: 3
-    # Uncomment to enable Instana EUM
-    # environment:
-      # INSTANA_EUM_KEY: <your eum key>
-      # INSTANA_EUM_REPORTING_URL: <your reporting url>
 
 volumes:
   mysql-data:

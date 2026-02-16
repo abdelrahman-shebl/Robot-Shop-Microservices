@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: Service
-metadata:
-  name: redis # This is the name your app wants
-spec:
-  type: ExternalName
-  externalName: redis-master.{{ .Release.Namespace }}.svc.cluster.local

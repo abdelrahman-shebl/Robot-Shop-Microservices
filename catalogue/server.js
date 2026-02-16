@@ -166,7 +166,7 @@ function mongoConnect() {
             mongoURL = `mongodb://${mongoHost}:27017/${mongoDatabase}`;
         }
         
-        mongoClient.connect(mongoURL, (error, client) => {
+        mongoClient.connect(mongoURL, { useUnifiedTopology: true }, (error, client) => {
             if(error) {
                 reject(error);
             } else {
@@ -196,4 +196,3 @@ const port = process.env.CATALOGUE_SERVER_PORT || '8080';
 app.listen(port, () => {
     logger.info('Started on port', port);
 });
-

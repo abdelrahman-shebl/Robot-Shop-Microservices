@@ -10,7 +10,7 @@ port: 27017
 
 envFrom:
   - secretRef:
-      name: mysql-secrets
+      name: mongo-secrets
 
     
 service:
@@ -43,9 +43,18 @@ networkPolicy:
     - podSelector:
         matchLabels:
           app: user
+<<<<<<< HEAD
     - podSelector:
         matchLabels:
           app: mongodb-exporter
+=======
+
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          app: mongodb-exporter
+
+>>>>>>> 5e3e59400bf8564f77e027266682f0ec349b40e6
     ports:
     - protocol: TCP
       port: 27017

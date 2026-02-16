@@ -52,6 +52,11 @@ networkPolicy:
     - podSelector:
         matchLabels:
           app: ingress 
+
+    - namespaceSelector: {}  # ANY namespace
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: traefik
     ports:
     - protocol: TCP
       port: 8080
