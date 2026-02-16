@@ -53,7 +53,7 @@ server:
       memory: 256Mi
   
   # Run in insecure mode - Traefik handles TLS termination
-  #insecure: true #-----><------#
+  insecure: true
   
   # Service ports configuration - expose on port 80 only
   # service:
@@ -66,7 +66,7 @@ server:
     ingressClassName: traefik
     annotations:
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
-      # traefik.ingress.kubernetes.io/backend-protocol: "http"
+      traefik.ingress.kubernetes.io/backend-protocol: "http"
     hosts:
       - host: argocd.${domain}
     # TLS certificate from cert-manager
@@ -76,7 +76,7 @@ server:
           - argocd.${domain}
         secretName: argocd-tls
     # Backend should use HTTP (port 80), not HTTPS
-   # https: false  #-----><------#
+    https: false
 
 # Keep ApplicationSet, it's tiny and useful
 applicationSet:

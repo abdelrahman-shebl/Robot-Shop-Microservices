@@ -1,9 +1,9 @@
 
 ports:
   web:
-    port: 8000
+    port: 80
   websecure:
-    port: 8443
+    port: 443
 
 service:
   enabled: true
