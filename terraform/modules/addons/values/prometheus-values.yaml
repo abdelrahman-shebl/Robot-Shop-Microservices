@@ -106,10 +106,10 @@ grafana:
         revision: 1
         datasource: Prometheus
 
-      Kubernetes-Cost-Report:
-        gnetId: 15877
-        revision: 1
-        datasource: Prometheus
+      # Kubernetes-Cost-Report:
+      #   gnetId: 15877
+      #   revision: 1
+      #   datasource: Prometheus
 
 prometheusOperator:
   admissionWebhooks:
