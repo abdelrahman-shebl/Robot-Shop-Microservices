@@ -95,12 +95,6 @@ grafana:
         gnetId: 7362
         revision: 1
         datasource: Prometheus
-      
-      # MongoDB Dashboard (for Percona mongodb_exporter with --compatible-mode)
-      mongodb:
-        gnetId: 12079
-        revision: 1
-        datasource: Prometheus
 
       OpenCost-Overview:
         gnetId: 22208
