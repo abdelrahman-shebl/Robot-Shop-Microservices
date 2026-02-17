@@ -23,6 +23,8 @@ user:
 web:
 
   <<: *dev_apis_values
+  ingress:
+    host: shebl22.me
 
 shipping:
   
