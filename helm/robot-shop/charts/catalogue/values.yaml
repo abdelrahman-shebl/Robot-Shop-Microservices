@@ -18,7 +18,7 @@ envFromSecrets:
   - name: MONGO_PASSWORD
     valueFrom:
       secretKeyRef:
-        key: MONGO_PASSWORD
+        key: CATALOGUE_MONGO_PASSWORD
         name: mongo-secrets
 resources:
   requests:

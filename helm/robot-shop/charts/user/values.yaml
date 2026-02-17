@@ -16,19 +16,19 @@ envFromSecrets:
   - name: MONGO_USER
     valueFrom:
       secretKeyRef:
-        key: MONGO_USER
+        key: USER_MONGO_USER
         name: mongo-secrets
 
   - name: MONGO_PASSWORD
     valueFrom:
       secretKeyRef:
-        key: MONGO_PASSWORD
+        key: USER_MONGO_PASSWORD
         name: mongo-secrets
 
   - name: MONGO_DATABASE
     valueFrom:
       secretKeyRef:
-        key: MONGO_DATABASE
+        key: USER_MONGO_DATABASE
         name: mongo-secrets
 
 
