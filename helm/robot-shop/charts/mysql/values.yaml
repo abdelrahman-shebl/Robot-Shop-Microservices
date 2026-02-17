@@ -34,7 +34,7 @@ volumeClaimTemplates:
       requests:
         storage: 200Mi
 
-networkPolicy:
+NetworkPolicy:
   policyTypes:
   - Ingress
   - Egress

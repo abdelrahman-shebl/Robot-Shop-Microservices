@@ -22,7 +22,7 @@ hpa:
   targetCPU: 70
   targetMemory: 80 
 
-networkPolicy:
+NetworkPolicy:
   policyTypes:
   - Ingress
   - Egress
