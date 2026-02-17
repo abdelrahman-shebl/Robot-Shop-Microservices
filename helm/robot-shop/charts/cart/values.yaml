@@ -3,7 +3,7 @@ tier: backend
 
 image:
   repository: robotshop
-  name: cart
+  name: rs-cart
   version: 2.1.0
 
 port: 8080

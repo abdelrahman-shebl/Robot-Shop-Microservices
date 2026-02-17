@@ -3,7 +3,7 @@ tier: message-queue
 
 image:
   repository: robotshop
-  name: dispatch
+  name: rs-dispatch
   version: 2.1.0
 
 resources:

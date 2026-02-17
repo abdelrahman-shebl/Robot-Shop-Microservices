@@ -3,7 +3,7 @@ tier: backend
 
 image:
   repository: robotshop
-  name: ratings
+  name: rs-ratings
   version: 2.1.0
 
 port: 80

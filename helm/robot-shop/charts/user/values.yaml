@@ -3,7 +3,7 @@ tier: backend
 
 image:
   repository: robotshop
-  name: user
+  name: rs-user
   version: 2.1.0
 
 port: 8080

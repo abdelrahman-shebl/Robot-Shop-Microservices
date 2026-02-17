@@ -3,7 +3,7 @@ tier: backend
 
 image:
   repository: robotshop
-  name: shipping
+  name: rs-shipping
   version: 2.1.0
 
 port: 8080

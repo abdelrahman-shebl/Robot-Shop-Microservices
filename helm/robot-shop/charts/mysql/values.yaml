@@ -3,7 +3,7 @@ tier: database
 replicas: 3 
 image:
   repository: robotshop
-  name: mysql
+  name: rs-mysql
   version: 2.1.0
 
 port: 3306

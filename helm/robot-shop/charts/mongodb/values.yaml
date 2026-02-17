@@ -3,7 +3,7 @@ tier: database
 replicas: 3 
 image:
   repository: robotshop
-  name: mongodb
+  name: rs-mongodb
   version: 2.1.0
 
 port: 27017
