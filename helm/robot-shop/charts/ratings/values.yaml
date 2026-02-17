@@ -16,7 +16,7 @@ envFromSecrets:
   - name: MYSQL_USER
     valueFrom:
       secretKeyRef:
-        key: MRATINGS_MYSQL_USERR
+        key: RATINGS_MYSQL_USERR
         name: mysql-secrets
 
   - name: MYSQL_PASSWORD
