@@ -1,11 +1,10 @@
 mysql:
   host: "mysql"
+  port: 3306
+  existingPasswordSecret:
+    name: "mysql-secrets"
+    key: "MYSQL_ROOT_PASSWORD"
 
-auth:
-  # Reference existing secret from robotshop namespace
-  existingSecret: "mysql-secrets"
-  existingSecretPasswordKey: "MYSQL_ROOT_PASSWORD"
-  username: root
 
 serviceMonitor:
   enabled: true

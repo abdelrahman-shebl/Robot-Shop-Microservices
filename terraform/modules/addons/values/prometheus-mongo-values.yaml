@@ -4,13 +4,11 @@ serviceMonitor:
 podLabels:
   app: mongodb-exporter
 
-auth:
-  # Reference existing secret from robotshop namespace
-  existingSecret: "mongo-secrets"
-  existingSecretUsernameKey: "MONGO_INITDB_ROOT_USERNAME"
-  existingSecretPasswordKey: "MONGO_INITDB_ROOT_PASSWORD"
+existingSecret:
+  name: "mongo-secrets"
+  key: "mongodb-uri"
 
+# Helm chart will mount MONGODB_URI from prometheus-mongodb-exporter secret
+# containing: mongodb://admin:admin@mongodb:27017?authSource=admin
 mongodb:
-  # Short hostname since exporter runs in same namespace (robotshop)
-  # Username and password will be injected from secret
   uri: "mongodb://mongodb:27017"

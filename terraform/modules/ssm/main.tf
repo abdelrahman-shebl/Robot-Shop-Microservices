@@ -38,6 +38,8 @@ resource "aws_ssm_parameter" "mongo_creds" {
     USER_MONGO_USER     = var.secrets_map.USER_MONGO_USER
     USER_MONGO_PASSWORD = var.secrets_map.USER_MONGO_PASSWORD
     USER_MONGO_DATABASE = var.secrets_map.USER_MONGO_DATABASE
+    
+    MONGODB_URI = "mongodb://${var.secrets_map.MONGO_INITDB_ROOT_USERNAME}:${var.secrets_map.MONGO_INITDB_ROOT_PASSWORD}@mongodb:27017/admin?authSource=admin"
   })
 }
 
