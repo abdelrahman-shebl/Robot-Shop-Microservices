@@ -60,7 +60,7 @@ jobs:
       strategy:
         fail-fast: false # Don't stop other scans if one app fails
         matrix: 
-          app: [cart, mongodb, payment, catalogue, dispatch, mysql, ratings, shipping, user, web ]
+          app: [cart, mongo, payment, catalogue, dispatch, mysql, ratings, shipping, user, web ]
       runs-on: ubuntu-latest
       steps:
       - name: Checkout
