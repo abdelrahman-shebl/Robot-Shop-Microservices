@@ -6,7 +6,7 @@ podLabels:
 
 existingSecret:
   name: "mongo-secrets"
-  key: "mongodb-uri"
+  key: "MONGODB_URI"
 
 # Helm chart will mount MONGODB_URI from prometheus-mongodb-exporter secret
 # containing: mongodb://admin:admin@mongodb:27017?authSource=admin
