@@ -6,3 +6,7 @@ podLabels:
 
 mongodb:
   uri: "mongodb://admin:admin@mongodb:27017/?authSource=admin"
+
+extraArgs:
+  - --compatible-mode
+  # - --collect-all
