@@ -20,7 +20,7 @@ envFromSecrets:
       secretKeyRef:
         key: MONGO_PASSWORD
         name: mongo-secrets
-Resources:
+resources:
   requests:
     cpu: "350m"      
     memory: "200Mi"  
