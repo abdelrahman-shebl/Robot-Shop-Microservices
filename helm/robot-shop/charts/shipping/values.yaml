@@ -23,10 +23,10 @@ envFromSecrets:
 Resources:
   requests:
     cpu: "350m"      
-    memory: "200Mi"  
+    memory: "400Mi"  
   limits:
     cpu: "700m"      
-    memory: "400Mi" 
+    memory: "800Mi" 
     
 service:   
   port: 8080
