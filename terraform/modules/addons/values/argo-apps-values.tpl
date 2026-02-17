@@ -238,7 +238,7 @@ applications:
     sources:
       - chart: prometheus-mongodb-exporter
         repoURL: ghcr.io/prometheus-community/charts
-        targetRevision: "3.13.0"
+        targetRevision: "3.17.0"
         helm:
           valueFiles:
             - $repo/terraform/modules/addons/values/prometheus-mongo-values.yaml
