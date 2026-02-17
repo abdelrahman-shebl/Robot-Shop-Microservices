@@ -1,5 +1,5 @@
 mysql:
-  host: "mysql"
+  host: "mysql.robotshop.svc.cluster.local"
 
 serviceMonitor:
   enabled: true
