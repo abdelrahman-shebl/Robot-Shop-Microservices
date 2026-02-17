@@ -2,10 +2,10 @@
   resources:
     requests:
       cpu: "50m"                 
-      memory: "64Mi"
+      memory: "200Mi"
     limits:
       cpu: "200m"
-      memory: "128Mi"
+      memory: "500Mi"
   
   hpa:
     minReplicas: 1
