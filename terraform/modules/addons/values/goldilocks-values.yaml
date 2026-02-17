@@ -48,7 +48,7 @@ dashboard:
       - host: ""
         paths:
           - path: "/"
-            pathType: Prefix
+            type: Prefix
 
 # 5. Resources (Good defaults for production)
   resources:
