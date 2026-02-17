@@ -83,7 +83,7 @@ resource "aws_glue_catalog_database" "opencost" {
 
 # SCHEDULE: Run crawler after first CUR delivery (24 hours), then weekly
 # You trigger it manually:
-#   aws glue start-crawler --name opencost_crawler
+#   aws glue start-crawler --name opencost_crawler --region us-east-1
 resource "aws_glue_crawler" "opencost" {
   name          = "opencost_crawler"
   database_name = aws_glue_catalog_database.opencost.name

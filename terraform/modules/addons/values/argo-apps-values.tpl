@@ -223,7 +223,7 @@ applications:
       annotations:
         argocd.argoproj.io/sync-wave: "-2"
     destination:
-      namespace: monitoring
+      namespace: robotshop
       server: https://kubernetes.default.svc
 
   prometheus-mongodb-exporter:
@@ -247,7 +247,7 @@ applications:
       annotations:
         argocd.argoproj.io/sync-wave: "-2"
     destination:
-      namespace: monitoring
+      namespace: robotshop
       server: https://kubernetes.default.svc
 
 

@@ -4,5 +4,13 @@ serviceMonitor:
 podLabels:
   app: mongodb-exporter
 
+auth:
+  # Reference existing secret from robotshop namespace
+  existingSecret: "mongo-secrets"
+  existingSecretUsernameKey: "MONGO_INITDB_ROOT_USERNAME"
+  existingSecretPasswordKey: "MONGO_INITDB_ROOT_PASSWORD"
+
 mongodb:
-  uri: "mongodb://mongodb.robotshop.svc.cluster.local:27017"
+  # Short hostname since exporter runs in same namespace (robotshop)
+  # Username and password will be injected from secret
+  uri: "mongodb://mongodb:27017"

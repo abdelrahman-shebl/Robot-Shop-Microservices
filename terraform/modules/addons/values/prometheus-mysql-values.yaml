@@ -1,5 +1,11 @@
 mysql:
-  host: "mysql.robotshop.svc.cluster.local"
+  host: "mysql"
+
+auth:
+  # Reference existing secret from robotshop namespace
+  existingSecret: "mysql-secrets"
+  existingSecretPasswordKey: "MYSQL_ROOT_PASSWORD"
+  username: root
 
 serviceMonitor:
   enabled: true
