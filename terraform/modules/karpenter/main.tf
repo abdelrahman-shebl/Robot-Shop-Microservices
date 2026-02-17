@@ -109,7 +109,7 @@ resource "kubectl_manifest" "karpenter_node_class" {
         {
           deviceName = "/dev/xvda"
           ebs = {
-            volumeSize = "10Gi"
+            volumeSize = "20Gi"
             volumeType = "gp3"
           }
         }

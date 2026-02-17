@@ -36,31 +36,6 @@ resource "helm_release" "argocd-apps" {
   ]
 }
 
-resource "terraform_data" "cleanup_load_balancers" {
-  triggers_replace = {
-    cluster_name = var.cluster_name
-  }
-
-  # Hook runs BEFORE argocd-apps is destroyed
-  depends_on = [
-    helm_release.argocd-apps
-  ]
-
-  provisioner "local-exec" {
-    when    = destroy
-    command = <<-EOT
-      echo "Deleting Ingress resources..."
-      kubectl delete ingress --all --all-namespaces --ignore-not-found=true --timeout=5m || true
-      
-      echo "Deleting LoadBalancer Services (Traefik)..."
-      kubectl get svc -A | grep LoadBalancer | awk '{print "kubectl delete svc " $2 " -n " $1}' | sh || true
-      
-      echo "Waiting 45 seconds for AWS Load Balancer Controller to process..."
-      sleep 45
-    EOT
-  }
-}
-
 resource "kubernetes_storage_class" "gp3" {
   metadata {
     name = "gp3"
