@@ -60,6 +60,13 @@ grafana:
           - ""
 
   defaultDashboardsEnabled: false
+  sidecar:
+      dashboards:
+        enabled: true 
+      datasources:
+        enabled: true
+        # This automatically discovers the Prometheus instance managed by this chart
+        defaultDatasourceEnabled: true
   dashboards:
     default:
       # Node Exporter Full
