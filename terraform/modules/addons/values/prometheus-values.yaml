@@ -96,9 +96,9 @@ grafana:
         revision: 1
         datasource: Prometheus
       
-      # MongoDB Dashboard
+      # MongoDB Dashboard (compatible with Percona exporter v0.40+)
       mongodb:
-        gnetId: 2583
+        gnetId: 14997
         revision: 1
         datasource: Prometheus
 
