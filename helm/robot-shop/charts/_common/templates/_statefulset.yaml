@@ -33,9 +33,11 @@ spec:
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
+            {{- if .Values.capabilities }}
             {{- if .Values.capabilities.add }}
             add:
               {{- toYaml .Values.capabilities.add | nindent 16 }}
+            {{- end }}
             {{- end }}
             drop:
               - ALL
