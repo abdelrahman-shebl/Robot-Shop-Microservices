@@ -39,57 +39,70 @@ jobs:
           # Navigate into the folder where the artifacts were downloaded
           cd all-reports || exit 1
 
-          # 0. Define base variables for cleaner curl commands
-          DOJO_URL="${{ secrets.DEFECTDOJO_URL }}/api/v2/reimport-scan/"
+          # 0. Define base variables
+          # CHANGED: Switched to import-scan for new data ingestion
+          DOJO_URL="${{ secrets.DEFECTDOJO_URL }}/api/v2/import-scan/"
           AUTH_HEADER="Authorization: Token $DD_TOKEN"
           ENGAGEMENT="Automated-CI-CD"
           PRODUCT_BASE="Robot-Shop-Microservices"
+          PRODUCT_TYPE="Robot-Shop-App"
 
           # 1. Handle SAST
           if [ -f "semgrep-reports.sarif" ]; then
-            curl -s -X POST "$DOJO_URL" \
+            echo "Uploading Semgrep SAST..."
+            # CHANGED: Removed -s to see the API response
+            curl -X POST "$DOJO_URL" \
               -H "$AUTH_HEADER" \
               -F "scan_type=SARIF" \
+              -F "product_type_name=$PRODUCT_TYPE" \
               -F "product_name=$PRODUCT_BASE-Code" \
               -F "engagement_name=$ENGAGEMENT" \
               -F "auto_create_context=True" \
               -F "file=@semgrep-reports.sarif"
+            echo -e "\n"
           fi
 
           # 2. Handle Secrets
           if [ -f "results.sarif" ]; then
-            curl -s -X POST "$DOJO_URL" \
+            echo "Uploading Gitleaks Secrets..."
+            curl -X POST "$DOJO_URL" \
               -H "$AUTH_HEADER" \
               -F "scan_type=Gitleaks Scan" \
+              -F "product_type_name=$PRODUCT_TYPE" \
               -F "product_name=$PRODUCT_BASE-Secrets" \
               -F "engagement_name=$ENGAGEMENT" \
               -F "auto_create_context=True" \
               -F "file=@results.sarif"
+            echo -e "\n"
           fi
 
           # 3. Handle All Image Scans (The Package approach)
           for report in *-reports.sarif; do
-            # Check if the file exists to avoid glob matching errors
             if [ -f "$report" ] && [[ "$report" != "semgrep-reports.sarif" && "$report" != "gitleaks-reports.sarif" ]]; then
-              # Extract app name by stripping the suffix
               APP_NAME=$(echo "$report" | sed 's/-reports.sarif//')
-              curl -s -X POST "$DOJO_URL" \
+              echo "Uploading Image Scan for $APP_NAME..."
+              curl -X POST "$DOJO_URL" \
                 -H "$AUTH_HEADER" \
                 -F "scan_type=SARIF" \
+                -F "product_type_name=$PRODUCT_TYPE" \
                 -F "product_name=$PRODUCT_BASE-Image-$APP_NAME" \
                 -F "engagement_name=$ENGAGEMENT" \
                 -F "auto_create_context=True" \
                 -F "file=@$report"
+              echo -e "\n"
             fi
           done
 
           # 4. Handle DAST (ZAP HTML report)
           if [ -f "report_html.html" ]; then
-             curl -s -X POST "$DOJO_URL" \
+             echo "Uploading ZAP DAST..."
+             curl -X POST "$DOJO_URL" \
               -H "$AUTH_HEADER" \
               -F "scan_type=ZAP Scan" \
+              -F "product_type_name=$PRODUCT_TYPE" \
               -F "product_name=$PRODUCT_BASE-Web" \
               -F "engagement_name=$ENGAGEMENT" \
               -F "auto_create_context=True" \
               -F "file=@report_html.html"
+             echo -e "\n"
           fi
