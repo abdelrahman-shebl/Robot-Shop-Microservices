@@ -22,25 +22,26 @@ jobs:
       - name: Fetch DefectDojo API Token
         id: get-token
         run: |
-          # Dynamically fetch the token using credentials stored in GitHub Secrets
-          TOKEN=$(curl -s -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/api-token-auth/" \
+          # 1. Grab the raw response FIRST to see what the server is actually saying
+          RAW_RESPONSE=$(curl -s -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/api-token-auth/" \
             -H "Content-Type: application/json" \
-            -d '{"username":"${{ secrets.DD_USERNAME }}","password":"${{ secrets.DD_PASSWORD }}"}' | jq -r .token)
+            -d '{"username":"${{ secrets.DD_USERNAME }}","password":"${{ secrets.DD_PASSWORD }}"}')
+          
+          echo "Raw Response: $RAW_RESPONSE"
+
+          # 2. Now extract the token using jq
+          TOKEN=$(echo $RAW_RESPONSE | jq -r .token)
             
+          # 3. Check if token is missing, and if so, exit
           if [ "$TOKEN" == "null" ] || [ -z "$TOKEN" ]; then
             echo "Error: Failed to retrieve API token. Check your URL and credentials."
             exit 1
           fi
-          
+            
           # Securely mask the token in GitHub Actions logs
           echo "::add-mask::$TOKEN"
           # Export it as an environment variable for the upload step
           echo "DD_TOKEN=$TOKEN" >> $GITHUB_ENV
-          
-          RAW_RESPONSE=$(curl -s -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/api-token-auth/" \
-          -H "Content-Type: application/json" \
-          -d '{"username":"${{ secrets.DD_USERNAME }}","password":"${{ secrets.DD_PASSWORD }}"}')
-          echo "Raw Response: $RAW_RESPONSE"
           
       - name: Bulk Upload to DefectDojo
         run: |
