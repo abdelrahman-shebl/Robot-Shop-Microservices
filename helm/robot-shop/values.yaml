@@ -1,6 +1,6 @@
 .image: &tag
   repository: shebl22
-  version: 171da3ff9d3e18e80b6ff215eaee768703c15277
+  version: e45152ab668d1f1ab284286e14c05ddd6a476522
 redis:
   enabled: true
   fullnameOverride: redis
