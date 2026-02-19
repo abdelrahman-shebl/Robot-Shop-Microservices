@@ -1,9 +1,8 @@
 # 1. Global Settings
 # This is the domain you will use to access the dashboard
 
-# Keep this false so it doesn't overwrite your custom admin credentials
-createSecret: false
-existingSecret: "my-dojo-defectdojo"
+# Keep this true so the chart creates the 'defectdojo' secret needed by all containers
+createSecret: true
 
 # -- create valkey secret in defectdojo chart, outside of valkey chart
 # CHANGE TO TRUE: Generates the secret object Kubernetes is looking for (even if auth is disabled)
@@ -15,7 +14,7 @@ createPostgresqlSecret: true
 
 admin:
   user: admin
-  password: ""
+  password: "admin"
 
 host: "" 
 siteUrl: ""
