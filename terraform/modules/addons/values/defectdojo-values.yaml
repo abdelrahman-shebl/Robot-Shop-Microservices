@@ -55,6 +55,10 @@ celery:
 # 4. The Database (PostgreSQL)
 # We use the Bitnami sub-chart.
 postgresql:
+  auth:
+    # Explicit stable passwords to survive PVC-backed redeployments
+    password: "defectdojo-db-pass"
+    postgresPassword: "postgres-superuser-pass"
   primary:
     persistence:
       enabled: true

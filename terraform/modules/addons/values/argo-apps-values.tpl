@@ -14,7 +14,7 @@ applications:
         prune: true
         selfHeal: true
       syncOptions:
-        - CreateNamespace=true
+        - CreateNamespace=true 
     sources:
       - chart: cert-manager
         repoURL: https://charts.jetstack.io
