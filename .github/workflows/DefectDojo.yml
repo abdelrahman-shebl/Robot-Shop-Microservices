@@ -1,6 +1,7 @@
 name: Defect-Dojo-Upload
+
 on:
-  workflow_dispatch:  
+  workflow_dispatch:
 
 jobs:
   bulk_upload:
@@ -40,7 +41,6 @@ jobs:
           cd all-reports || exit 1
 
           # 0. Define base variables
-          # CHANGED: Switched to import-scan for new data ingestion
           DOJO_URL="${{ secrets.DEFECTDOJO_URL }}/api/v2/import-scan/"
           AUTH_HEADER="Authorization: Token $DD_TOKEN"
           ENGAGEMENT="Automated-CI-CD"
@@ -50,7 +50,6 @@ jobs:
           # 1. Handle SAST
           if [ -f "semgrep-reports.sarif" ]; then
             echo "Uploading Semgrep SAST..."
-            # CHANGED: Removed -s to see the API response
             curl -X POST "$DOJO_URL" \
               -H "$AUTH_HEADER" \
               -F "scan_type=SARIF" \
@@ -62,8 +61,8 @@ jobs:
             echo -e "\n"
           fi
 
-          # 2. Handle Secrets
-          if [ -f "results.sarif" ]; then
+          # 2. Handle Secrets (Updated for JSON)
+          if [ -f "gitleaks-report.json" ]; then
             echo "Uploading Gitleaks Secrets..."
             curl -X POST "$DOJO_URL" \
               -H "$AUTH_HEADER" \
@@ -72,10 +71,10 @@ jobs:
               -F "product_name=$PRODUCT_BASE-Secrets" \
               -F "engagement_name=$ENGAGEMENT" \
               -F "auto_create_context=True" \
-              -F "file=@results.sarif"
+              -F "file=@gitleaks-report.json"
             echo -e "\n"
           fi
-
+          
           # 3. Handle All Image Scans (The Package approach)
           for report in *-reports.sarif; do
             if [ -f "$report" ] && [[ "$report" != "semgrep-reports.sarif" && "$report" != "gitleaks-reports.sarif" ]]; then
@@ -93,8 +92,8 @@ jobs:
             fi
           done
 
-          # 4. Handle DAST (ZAP HTML report)
-          if [ -f "report_html.html" ]; then
+          # 4. Handle DAST (Updated for XML)
+          if [ -f "zap_report_xml.xml" ]; then
              echo "Uploading ZAP DAST..."
              curl -X POST "$DOJO_URL" \
               -H "$AUTH_HEADER" \
@@ -103,6 +102,6 @@ jobs:
               -F "product_name=$PRODUCT_BASE-Web" \
               -F "engagement_name=$ENGAGEMENT" \
               -F "auto_create_context=True" \
-              -F "file=@report_html.html"
+              -F "file=@zap_report_xml.xml"
              echo -e "\n"
           fi
