@@ -156,11 +156,9 @@ jobs:
         with:
           target: 'http://localhost:8080'
           # Passing 'fail_action: true' ensures the pipeline breaks if high-risk bugs are found
-          create_issue: false
+          allow_issue_writing: false
           fail_action: false 
           cmd_options: '-x report_xml.xml'
-          # Setting issue_title to an empty string completely disables issue creation
-          issue_title: ''
 
       - name: Upload DAST Report
         if: always()
