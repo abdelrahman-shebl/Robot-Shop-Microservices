@@ -93,7 +93,7 @@ jobs:
           done
 
           # 4. Handle DAST (Updated for XML)
-          if [ -f "zap_report_xml.xml" ]; then
+          if [ -f "report_xml.xml" ]; then
              echo "Uploading ZAP DAST..."
              curl -X POST "$DOJO_URL" \
               -H "$AUTH_HEADER" \
@@ -102,6 +102,6 @@ jobs:
               -F "product_name=$PRODUCT_BASE-Web" \
               -F "engagement_name=$ENGAGEMENT" \
               -F "auto_create_context=True" \
-              -F "file=@zap_report_xml.xml"
+              -F "file=@report_xml.xml"
              echo -e "\n"
           fi
