@@ -8,30 +8,23 @@ on:
 
 jobs:
 
-  # semgrep_scan: # SAST (static application security testing)
-  #   runs-on: ubuntu-latest
-  #   container:
-  #     image: semgrep/semgrep
-  #   steps:
-  #   - name: Checkout
-  #     uses: actions/checkout@v6.0.2
+  semgrep_scan: # SAST (static application security testing)
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6.0.2
       
-  #   - name: Run semgrep scans
-  #     run: semgrep scan --config auto --sarif-output=semgrep-reports.sarif  --json-output=semgrep-reports.json --severity ERROR --severity WARNING
+    - name: Run semgrep scans
+      run: semgrep scan --config auto --sarif-output=semgrep-reports.sarif  --json-output=semgrep-reports.json --severity ERROR --severity WARNING
 
-  #   # - name: Upload SARIF to GitHub
-  #   #   if: always()
-  #   #   uses: github/codeql-action/upload-sarif@v3
-  #   #   with:
-  #   #     sarif_file: semgrep-reports.sarif
-
-
-  #   - name: Upload semgrep-reports 
-  #     if: always()
-  #     uses: actions/upload-artifact@v6.0.0
-  #     with:
-  #       name: semgrep-reports
-  #       path: "semgrep-reports*"
+    - name: Upload semgrep-reports 
+      if: always()
+      uses: actions/upload-artifact@v6.0.0
+      with:
+        name: semgrep-reports
+        path: "semgrep-reports*"
 
   gitleaks_scan:
     name: Gitleaks Scan
@@ -40,15 +33,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6.0.2
 
-      - name: Install Gitleaks
-        run: |
-          VERSION="8.18.2"
-          wget https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/gitleaks_${VERSION}_linux_x64.tar.gz
-          tar -xf gitleaks_${VERSION}_linux_x64.tar.gz
-          mv gitleaks /usr/local/bin/
+      - name: Cache Gitleaks Binary
+        uses: actions/cache@v4
+        with:
+          path: ./gitleaks
+          key: gitleaks-8.18.2
 
-      - name: Run Gitleaks (JSON Output)
-        run: gitleaks detect --report-path gitleaks-report.json --report-format json || true
+      - name: Install Gitleaks (If not cached)
+        run: |
+          # Only downloads if the cache didn't already put the file here
+          if [ ! -f "./gitleaks" ]; then
+            wget -qO- https://github.com/gitleaks/gitleaks/releases/download/v8.18.2/gitleaks_8.18.2_linux_x64.tar.gz | tar xz gitleaks
+          fi
+
+      - name: Run Gitleaks
+        # Use ./ to run it directly from the current folder
+        run: ./gitleaks detect --report-path gitleaks-report.json --report-format json || true
 
       - name: Upload gitleaks-reports
         if: always()
@@ -56,65 +56,66 @@ jobs:
         with:
           name: gitleaks-reports
           path: gitleaks-report.json
-  # image_scan: #SCA (Software Composition Analysis) of both the OS and Application layers  + Container Security
-  #     name: Image Scan
-  #     strategy:
-  #       fail-fast: false # Don't stop other scans if one app fails
-  #       matrix: 
-  #         app: [cart, mongo, payment, catalogue, dispatch, mysql, ratings, shipping, user, web ]
-  #     runs-on: ubuntu-latest
-  #     steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v6.0.2
-  #     -
-  #       name: Login to Docker Hub
-  #       uses: docker/login-action@v3
-  #       with:
-  #         username: ${{ vars.DOCKERHUB_USERNAME }}
-  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-  #     - name: Docker Setup Buildx
-  #       uses: docker/setup-buildx-action@v3.12.0
-
-  #     - name: Build Docker images
-  #       uses: docker/build-push-action@v6.18.0
-  #       with:
-  #         load: true
-  #         context: ${{ matrix.app }}
-  #         file: ${{ matrix.app }}/Dockerfile
-  #         cache-from: type=gha,scope=${{ matrix.app }}
-  #         cache-to: type=gha,mode=max,scope=${{ matrix.app }}
-  #         tags: ${{ vars.DOCKERHUB_USERNAME }}/rs-${{ matrix.app }}:${{github.sha}}
-
-  #     - name: Docker Scout
-  #       uses: docker/scout-action@v1.18.2
-  #       with:
-  #         command: quickview, cves 
-  #         image: ${{ vars.DOCKERHUB_USERNAME }}/rs-${{ matrix.app }}:${{github.sha}}
-  #         only-severities: critical,high
-  #         sarif-file: ${{ matrix.app }}-reports.sarif
           
-  #     - name: Upload a Build Artifact
-  #       if: always()
-  #       uses: actions/upload-artifact@v6.0.0
-  #       with:
-  #         name: ${{ matrix.app }}-reports
-  #         path:  ${{ matrix.app }}-reports.sarif 
+  image_scan: #SCA (Software Composition Analysis) of both the OS and Application layers  + Container Security
+      name: Image Scan
+      strategy:
+        fail-fast: false # Don't stop other scans if one app fails
+        matrix: 
+          app: [cart, mongo, payment, catalogue, dispatch, mysql, ratings, shipping, user, web ]
+      runs-on: ubuntu-latest
+      steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+      -
+        name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Docker Setup Buildx
+        uses: docker/setup-buildx-action@v3.12.0
+
+      - name: Build Docker images
+        uses: docker/build-push-action@v6.18.0
+        with:
+          load: true
+          context: ${{ matrix.app }}
+          file: ${{ matrix.app }}/Dockerfile
+          cache-from: type=gha,scope=${{ matrix.app }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.app }}
+          tags: ${{ vars.DOCKERHUB_USERNAME }}/rs-${{ matrix.app }}:${{github.sha}}
+
+      - name: Docker Scout
+        uses: docker/scout-action@v1.18.2
+        with:
+          command: quickview, cves 
+          image: ${{ vars.DOCKERHUB_USERNAME }}/rs-${{ matrix.app }}:${{github.sha}}
+          only-severities: critical,high
+          sarif-file: ${{ matrix.app }}-reports.sarif
+          
+      - name: Upload a Build Artifact
+        if: always()
+        uses: actions/upload-artifact@v6.0.0
+        with:
+          name: ${{ matrix.app }}-reports
+          path:  ${{ matrix.app }}-reports.sarif 
           
 
-  #     - name: push Docker images
-  #       uses: docker/build-push-action@v6.18.0
-  #       with:
-  #         push: true
-  #         context: ${{ matrix.app }}
-  #         file: ${{ matrix.app }}/Dockerfile
-  #         cache-from: type=gha,scope=${{ matrix.app }}
-  #         tags: ${{ vars.DOCKERHUB_USERNAME }}/rs-${{ matrix.app }}:${{github.sha}}
+      - name: push Docker images
+        uses: docker/build-push-action@v6.18.0
+        with:
+          push: true
+          context: ${{ matrix.app }}
+          file: ${{ matrix.app }}/Dockerfile
+          cache-from: type=gha,scope=${{ matrix.app }}
+          tags: ${{ vars.DOCKERHUB_USERNAME }}/rs-${{ matrix.app }}:${{github.sha}}
 
   dast_scan:
     name: DAST Security Scan
     runs-on: ubuntu-latest
-    #needs: [image_scan]
+    needs: [image_scan]
     env:
       # Repository Variables
       REPO: ${{ vars.DOCKERHUB_USERNAME }}
@@ -155,6 +156,7 @@ jobs:
         with:
           target: 'http://localhost:8080'
           # Passing 'fail_action: true' ensures the pipeline breaks if high-risk bugs are found
+          create_issue: false
           fail_action: false 
           cmd_options: '-x report_xml.xml'
 
@@ -172,7 +174,7 @@ jobs:
   consolidate_reports:
     name: Merge All Security Reports
     runs-on: ubuntu-latest
-    needs: [ gitleaks_scan, dast_scan] #image_scan, semgrep_scan
+    needs: [ image_scan, semgrep_scan ,gitleaks_scan, dast_scan ] #
     if: always()
     steps:
       - name: Download All Individual Artifacts
@@ -188,39 +190,39 @@ jobs:
           name: final-security-bundle # This will be the ONLY zip in the UI
           path: all-reports/          # Uploads the entire folder as one zip
 
-  # update-k8s-values:
-  #   name: update k8s versions
-  #   runs-on: ubuntu-latest
-  #   needs: [image_scan, semgrep_scan, gitleaks_scan] 
-  #   if: always()
-  #   permissions: 
-  #     contents: write
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         # Use ref to ensure we are on the exact branch that triggered the push
-  #         ref: ${{ github.ref_name }}
-  #         token: ${{ secrets.GITHUB_TOKEN }}
+  update-k8s-values:
+    name: update k8s versions
+    runs-on: ubuntu-latest
+    needs: [image_scan, semgrep_scan, gitleaks_scan] 
+    if: always()
+    permissions: 
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Use ref to ensure we are on the exact branch that triggered the push
+          ref: ${{ github.ref_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-  #     - name: Update, Commit and Push
-  #       env:
-  #         NEW_VERSION: ${{ github.sha }}
-  #       run: |
-  #         # 1. Configuration
-  #         git config --global user.email "github-actions[bot]@users.noreply.github.com"
-  #         git config --global user.name "github-actions[bot]"
+      - name: Update, Commit and Push
+        env:
+          NEW_VERSION: ${{ github.sha }}
+        run: |
+          # 1. Configuration
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
           
-  #         yq -i '.".image".version = strenv(NEW_VERSION)' helm/robot-shop/values.yaml
+          yq -i '.".image".version = strenv(NEW_VERSION)' helm/robot-shop/values.yaml
            
-  #         # 3. Stage the change
-  #         git add helm/robot-shop/values.yaml
+          # 3. Stage the change
+          git add helm/robot-shop/values.yaml
           
-  #         # 4. The "Safety Switch": Exit quietly if nothing changed
-  #         git diff --cached --quiet && echo "No changes to deploy" && exit 0
+          # 4. The "Safety Switch": Exit quietly if nothing changed
+          git diff --cached --quiet && echo "No changes to deploy" && exit 0
           
-  #         # 5. Commit and Push back to the active branch
-  #         git commit -m "chore: update images to ${{ github.sha }} [skip ci]"
-  #         git push origin ${{ github.ref_name }}
+          # 5. Commit and Push back to the active branch
+          git commit -m "chore: update images to ${{ github.sha }} [skip ci]"
+          git push origin ${{ github.ref_name }}
          
 
 
