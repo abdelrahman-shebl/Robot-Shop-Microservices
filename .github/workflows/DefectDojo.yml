@@ -49,14 +49,14 @@ jobs:
           fi
 
           # 2. Handle Secrets
-          if [ -f "gitleaks-reports.sarif" ]; then
+          if [ -f "results.sarif" ]; then
             curl -X POST "$DOJO_URL" \
               -H "$AUTH_HEADER" \
               -F "scan_type=Gitleaks Scan" \
               -F "product_name=$PRODUCT_BASE-Secrets" \
               -F "engagement_name=$ENGAGEMENT" \
               -F "auto_create_context=True" \
-              -F "file=@gitleaks-reports.sarif"
+              -F "file=@results.sarif"
           fi
 
           # 3. Handle All Image Scans (The Package approach)
