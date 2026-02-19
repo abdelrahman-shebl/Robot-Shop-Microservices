@@ -159,6 +159,8 @@ jobs:
           create_issue: false
           fail_action: false 
           cmd_options: '-x report_xml.xml'
+          # Setting issue_title to an empty string completely disables issue creation
+          issue_title: ''
 
       - name: Upload DAST Report
         if: always()
