@@ -11,36 +11,76 @@ jobs:
         with:
           name: final-security-bundle 
 
+      - name: Fetch DefectDojo API Token
+        id: get-token
+        run: |
+          # Dynamically fetch the token using credentials stored in GitHub Secrets
+          TOKEN=$(curl -s -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/api-token-auth/" \
+            -H "Content-Type: application/json" \
+            -d '{"username":"${{ secrets.DD_USERNAME }}","password":"${{ secrets.DD_PASSWORD }}"}' | jq -r .token)
+            
+          if [ "$TOKEN" == "null" ] || [ -z "$TOKEN" ]; then
+            echo "Error: Failed to retrieve API token. Check your URL and credentials."
+            exit 1
+          fi
+          
+          # Securely mask the token in GitHub Actions logs
+          echo "::add-mask::$TOKEN"
+          # Export it as an environment variable for the upload step
+          echo "DD_TOKEN=$TOKEN" >> $GITHUB_ENV
+
       - name: Bulk Upload to DefectDojo
         run: |
+          # 0. Define base variables for cleaner curl commands
+          DOJO_URL="${{ secrets.DEFECTDOJO_URL }}/api/v2/reimport-scan/"
+          AUTH_HEADER="Authorization: Token $DD_TOKEN"
+          ENGAGEMENT="Automated-CI-CD"
+          PRODUCT_BASE="Robot-Shop-Microservices"
+
           # 1. Handle SAST
           if [ -f "semgrep-reports.sarif" ]; then
-            curl -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/reimport-scan/" \  # used reimport to avoid duplicates and importing new scans each time
-              -H "Authorization: Token ${{ secrets.DEFECTDOJO_TOKEN }}" \
-              -F "scan_type=SARIF" -F "product_name=Robot-Shop-Code" -F "file=@semgrep-reports.sarif"
+            curl -X POST "$DOJO_URL" \
+              -H "$AUTH_HEADER" \
+              -F "scan_type=SARIF" \
+              -F "product_name=$PRODUCT_BASE-Code" \
+              -F "engagement_name=$ENGAGEMENT" \
+              -F "auto_create_context=True" \
+              -F "file=@semgrep-reports.sarif"
           fi
 
           # 2. Handle Secrets
           if [ -f "gitleaks-reports.sarif" ]; then
-            curl -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/reimport-scan/" \
-              -H "Authorization: Token ${{ secrets.DEFECTDOJO_TOKEN }}" \
-              -F "scan_type=Gitleaks Scan" -F "product_name=Robot-Shop-Secrets" -F "file=@gitleaks-reports.sarif"
+            curl -X POST "$DOJO_URL" \
+              -H "$AUTH_HEADER" \
+              -F "scan_type=Gitleaks Scan" \
+              -F "product_name=$PRODUCT_BASE-Secrets" \
+              -F "engagement_name=$ENGAGEMENT" \
+              -F "auto_create_context=True" \
+              -F "file=@gitleaks-reports.sarif"
           fi
 
           # 3. Handle All Image Scans (The Package approach)
-          # This loop automatically finds every image report in the bundle
           for report in *-reports.sarif; do
             if [[ "$report" != "semgrep-reports.sarif" && "$report" != "gitleaks-reports.sarif" ]]; then
-              APP_NAME=$(echo $report | cut -d'-' -f1)
-              curl -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/reimport-scan/" \
-                -H "Authorization: Token ${{ secrets.DEFECTDOJO_TOKEN }}" \
-                -F "scan_type=SARIF" -F "product_name=Image-$APP_NAME" -F "file=@$report"
+              # Extract app name by stripping the suffix
+              APP_NAME=$(echo $report | sed 's/-reports.sarif//')
+              curl -X POST "$DOJO_URL" \
+                -H "$AUTH_HEADER" \
+                -F "scan_type=SARIF" \
+                -F "product_name=$PRODUCT_BASE-Image-$APP_NAME" \
+                -F "engagement_name=$ENGAGEMENT" \
+                -F "auto_create_context=True" \
+                -F "file=@$report"
             fi
           done
 
           # 4. Handle DAST (ZAP HTML report)
           if [ -f "report_html.html" ]; then
-             curl -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/reimport-scan/" \
-              -H "Authorization: Token ${{ secrets.DEFECTDOJO_TOKEN }}" \
-              -F "scan_type=ZAP Scan" -F "product_name=Robot-Shop-Web" -F "file=@report_html.html"
+             curl -X POST "$DOJO_URL" \
+              -H "$AUTH_HEADER" \
+              -F "scan_type=ZAP Scan" \
+              -F "product_name=$PRODUCT_BASE-Web" \
+              -F "engagement_name=$ENGAGEMENT" \
+              -F "auto_create_context=True" \
+              -F "file=@report_html.html"
           fi
