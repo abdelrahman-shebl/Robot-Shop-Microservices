@@ -36,9 +36,17 @@ jobs:
           echo "::add-mask::$TOKEN"
           # Export it as an environment variable for the upload step
           echo "DD_TOKEN=$TOKEN" >> $GITHUB_ENV
-
+          
+          RAW_RESPONSE=$(curl -s -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/api-token-auth/" \
+          -H "Content-Type: application/json" \
+          -d '{"username":"${{ secrets.DD_USERNAME }}","password":"${{ secrets.DD_PASSWORD }}"}')
+          echo "Raw Response: $RAW_RESPONSE"
+          
       - name: Bulk Upload to DefectDojo
         run: |
+          # Navigate into the folder where the artifacts were downloaded
+          cd all-reports || exit 1
+
           # 0. Define base variables for cleaner curl commands
           DOJO_URL="${{ secrets.DEFECTDOJO_URL }}/api/v2/reimport-scan/"
           AUTH_HEADER="Authorization: Token $DD_TOKEN"
@@ -67,10 +75,10 @@ jobs:
               -F "file=@results.sarif"
           fi
 
-          # 3. Handle All Image Scans (The Package approach)
+          # 3. Handle All Image Scans
           for report in *-reports.sarif; do
-            if [[ "$report" != "semgrep-reports.sarif" && "$report" != "gitleaks-reports.sarif" ]]; then
-              # Extract app name by stripping the suffix
+            # Check if the file actually exists to avoid glob errors
+            if [ -f "$report" ] && [[ "$report" != "semgrep-reports.sarif" && "$report" != "gitleaks-reports.sarif" ]]; then
               APP_NAME=$(echo $report | sed 's/-reports.sarif//')
               curl -X POST "$DOJO_URL" \
                 -H "$AUTH_HEADER" \
@@ -82,7 +90,7 @@ jobs:
             fi
           done
 
-          # 4. Handle DAST (ZAP HTML report)
+          # 4. Handle DAST
           if [ -f "report_html.html" ]; then
              curl -X POST "$DOJO_URL" \
               -H "$AUTH_HEADER" \
