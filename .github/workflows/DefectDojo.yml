@@ -8,35 +8,32 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v6
+
       - name: Download via GitHub CLI
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Finds the latest artifact named 'final-security-bundle' in the repo
           gh run download --name final-security-bundle --dir all-reports
-      # - name: Download Unified Bundle
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: final-security-bundle 
 
-      - name: Fetch DefectDojo API Token (Debug Mode)
+      - name: Fetch DefectDojo API Token
         id: get-token
         run: |
-          # 1. Check if the URL secret actually contains data
-          echo "Checking URL Secret..."
-          echo "Target URL: ${{ secrets.DEFECTDOJO_URL }}/api/v2/api-token-auth/"
-          
-          # 2. Run curl in VERBOSE mode (-v) to see the network handshake and errors
-          # We removed the -s (silent) flag.
-          curl -v -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/api-token-auth/" \
+          # Dynamically fetch the token using credentials stored in GitHub Secrets
+          TOKEN=$(curl -s -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/api-token-auth/" \
             -H "Content-Type: application/json" \
-            -d '{"username":"${{ secrets.DD_USERNAME }}","password":"${{ secrets.DD_PASSWORD }}"}'
+            -d '{"username":"${{ secrets.DD_USERNAME }}","password":"${{ secrets.DD_PASSWORD }}"}' | jq -r .token)
+            
+          if [ "$TOKEN" == "null" ] || [ -z "$TOKEN" ]; then
+            echo "Error: Failed to retrieve API token. Check your URL, credentials, and ensure Codespace port is Public."
+            exit 1
+          fi
           
-          # 3. Force the pipeline to fail immediately here so we can read the logs
-          echo ""
-          echo "Stopping pipeline here to review the verbose network output above."
-          exit 1
-          
+          # Securely mask the token in GitHub Actions logs
+          echo "::add-mask::$TOKEN"
+          # Export it as an environment variable for the upload step
+          echo "DD_TOKEN=$TOKEN" >> $GITHUB_ENV
+
       - name: Bulk Upload to DefectDojo
         run: |
           # Navigate into the folder where the artifacts were downloaded
@@ -50,7 +47,7 @@ jobs:
 
           # 1. Handle SAST
           if [ -f "semgrep-reports.sarif" ]; then
-            curl -X POST "$DOJO_URL" \
+            curl -s -X POST "$DOJO_URL" \
               -H "$AUTH_HEADER" \
               -F "scan_type=SARIF" \
               -F "product_name=$PRODUCT_BASE-Code" \
@@ -61,7 +58,7 @@ jobs:
 
           # 2. Handle Secrets
           if [ -f "results.sarif" ]; then
-            curl -X POST "$DOJO_URL" \
+            curl -s -X POST "$DOJO_URL" \
               -H "$AUTH_HEADER" \
               -F "scan_type=Gitleaks Scan" \
               -F "product_name=$PRODUCT_BASE-Secrets" \
@@ -70,12 +67,13 @@ jobs:
               -F "file=@results.sarif"
           fi
 
-          # 3. Handle All Image Scans
+          # 3. Handle All Image Scans (The Package approach)
           for report in *-reports.sarif; do
-            # Check if the file actually exists to avoid glob errors
+            # Check if the file exists to avoid glob matching errors
             if [ -f "$report" ] && [[ "$report" != "semgrep-reports.sarif" && "$report" != "gitleaks-reports.sarif" ]]; then
-              APP_NAME=$(echo $report | sed 's/-reports.sarif//')
-              curl -X POST "$DOJO_URL" \
+              # Extract app name by stripping the suffix
+              APP_NAME=$(echo "$report" | sed 's/-reports.sarif//')
+              curl -s -X POST "$DOJO_URL" \
                 -H "$AUTH_HEADER" \
                 -F "scan_type=SARIF" \
                 -F "product_name=$PRODUCT_BASE-Image-$APP_NAME" \
@@ -85,9 +83,9 @@ jobs:
             fi
           done
 
-          # 4. Handle DAST
+          # 4. Handle DAST (ZAP HTML report)
           if [ -f "report_html.html" ]; then
-             curl -X POST "$DOJO_URL" \
+             curl -s -X POST "$DOJO_URL" \
               -H "$AUTH_HEADER" \
               -F "scan_type=ZAP Scan" \
               -F "product_name=$PRODUCT_BASE-Web" \
