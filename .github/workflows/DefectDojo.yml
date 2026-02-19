@@ -1,15 +1,21 @@
 name: Defect-Dojo-Upload
+
 on:
-  workflow_dispatch:  
+  workflow_dispatch:
 
 jobs:
   bulk_upload:
     runs-on: ubuntu-latest
     steps:
-      - name: Download Unified Bundle
-        uses: actions/download-artifact@v4
-        with:
-          name: final-security-bundle 
+      - name: Checkout Code
+        uses: actions/checkout@v6
+
+      - name: Download via GitHub CLI
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Finds the latest artifact named 'final-security-bundle' in the repo
+          gh run download --name final-security-bundle --dir all-reports
 
       - name: Fetch DefectDojo API Token
         id: get-token
@@ -20,7 +26,7 @@ jobs:
             -d '{"username":"${{ secrets.DD_USERNAME }}","password":"${{ secrets.DD_PASSWORD }}"}' | jq -r .token)
             
           if [ "$TOKEN" == "null" ] || [ -z "$TOKEN" ]; then
-            echo "Error: Failed to retrieve API token. Check your URL and credentials."
+            echo "Error: Failed to retrieve API token. Check your URL, credentials, and ensure Codespace port is Public."
             exit 1
           fi
           
@@ -31,56 +37,71 @@ jobs:
 
       - name: Bulk Upload to DefectDojo
         run: |
-          # 0. Define base variables for cleaner curl commands
-          DOJO_URL="${{ secrets.DEFECTDOJO_URL }}/api/v2/reimport-scan/"
+          # Navigate into the folder where the artifacts were downloaded
+          cd all-reports || exit 1
+
+          # 0. Define base variables
+          DOJO_URL="${{ secrets.DEFECTDOJO_URL }}/api/v2/import-scan/"
           AUTH_HEADER="Authorization: Token $DD_TOKEN"
           ENGAGEMENT="Automated-CI-CD"
           PRODUCT_BASE="Robot-Shop-Microservices"
+          PRODUCT_TYPE="Robot-Shop-App"
 
           # 1. Handle SAST
           if [ -f "semgrep-reports.sarif" ]; then
+            echo "Uploading Semgrep SAST..."
             curl -X POST "$DOJO_URL" \
               -H "$AUTH_HEADER" \
               -F "scan_type=SARIF" \
+              -F "product_type_name=$PRODUCT_TYPE" \
               -F "product_name=$PRODUCT_BASE-Code" \
               -F "engagement_name=$ENGAGEMENT" \
               -F "auto_create_context=True" \
               -F "file=@semgrep-reports.sarif"
+            echo -e "\n"
           fi
 
-          # 2. Handle Secrets
-          if [ -f "gitleaks-reports.sarif" ]; then
+          # 2. Handle Secrets (Updated for JSON)
+          if [ -f "gitleaks-report.json" ]; then
+            echo "Uploading Gitleaks Secrets..."
             curl -X POST "$DOJO_URL" \
               -H "$AUTH_HEADER" \
               -F "scan_type=Gitleaks Scan" \
+              -F "product_type_name=$PRODUCT_TYPE" \
               -F "product_name=$PRODUCT_BASE-Secrets" \
               -F "engagement_name=$ENGAGEMENT" \
               -F "auto_create_context=True" \
-              -F "file=@gitleaks-reports.sarif"
+              -F "file=@gitleaks-report.json"
+            echo -e "\n"
           fi
-
+          
           # 3. Handle All Image Scans (The Package approach)
           for report in *-reports.sarif; do
-            if [[ "$report" != "semgrep-reports.sarif" && "$report" != "gitleaks-reports.sarif" ]]; then
-              # Extract app name by stripping the suffix
-              APP_NAME=$(echo $report | sed 's/-reports.sarif//')
+            if [ -f "$report" ] && [[ "$report" != "semgrep-reports.sarif" && "$report" != "gitleaks-reports.sarif" ]]; then
+              APP_NAME=$(echo "$report" | sed 's/-reports.sarif//')
+              echo "Uploading Image Scan for $APP_NAME..."
               curl -X POST "$DOJO_URL" \
                 -H "$AUTH_HEADER" \
                 -F "scan_type=SARIF" \
+                -F "product_type_name=$PRODUCT_TYPE" \
                 -F "product_name=$PRODUCT_BASE-Image-$APP_NAME" \
                 -F "engagement_name=$ENGAGEMENT" \
                 -F "auto_create_context=True" \
                 -F "file=@$report"
+              echo -e "\n"
             fi
           done
 
-          # 4. Handle DAST (ZAP HTML report)
-          if [ -f "report_html.html" ]; then
+          # 4. Handle DAST (Updated for XML)
+          if [ -f "report_xml.xml" ]; then
+             echo "Uploading ZAP DAST..."
              curl -X POST "$DOJO_URL" \
               -H "$AUTH_HEADER" \
               -F "scan_type=ZAP Scan" \
+              -F "product_type_name=$PRODUCT_TYPE" \
               -F "product_name=$PRODUCT_BASE-Web" \
               -F "engagement_name=$ENGAGEMENT" \
               -F "auto_create_context=True" \
-              -F "file=@report_html.html"
+              -F "file=@report_xml.xml"
+             echo -e "\n"
           fi
