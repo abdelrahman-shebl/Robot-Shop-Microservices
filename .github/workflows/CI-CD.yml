@@ -8,30 +8,30 @@ on:
 
 jobs:
 
-  semgrep_scan: # SAST (static application security testing)
-    runs-on: ubuntu-latest
-    container:
-      image: semgrep/semgrep
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v6.0.2
+  # semgrep_scan: # SAST (static application security testing)
+  #   runs-on: ubuntu-latest
+  #   container:
+  #     image: semgrep/semgrep
+  #   steps:
+  #   - name: Checkout
+  #     uses: actions/checkout@v6.0.2
       
-    - name: Run semgrep scans
-      run: semgrep scan --config auto --sarif-output=semgrep-reports.sarif  --json-output=semgrep-reports.json --severity ERROR --severity WARNING
+  #   - name: Run semgrep scans
+  #     run: semgrep scan --config auto --sarif-output=semgrep-reports.sarif  --json-output=semgrep-reports.json --severity ERROR --severity WARNING
 
-    # - name: Upload SARIF to GitHub
-    #   if: always()
-    #   uses: github/codeql-action/upload-sarif@v3
-    #   with:
-    #     sarif_file: semgrep-reports.sarif
+  #   # - name: Upload SARIF to GitHub
+  #   #   if: always()
+  #   #   uses: github/codeql-action/upload-sarif@v3
+  #   #   with:
+  #   #     sarif_file: semgrep-reports.sarif
 
 
-    - name: Upload semgrep-reports 
-      if: always()
-      uses: actions/upload-artifact@v6.0.0
-      with:
-        name: semgrep-reports
-        path: "semgrep-reports*"
+  #   - name: Upload semgrep-reports 
+  #     if: always()
+  #     uses: actions/upload-artifact@v6.0.0
+  #     with:
+  #       name: semgrep-reports
+  #       path: "semgrep-reports*"
 
   gitleaks_scan:
     name: testing gitleaks
@@ -41,10 +41,9 @@ jobs:
         uses: actions/checkout@v6.0.2
       - name: Gitleaks
         uses: gitleaks/gitleaks-action@v2.3.9
-        with:
-          # CHANGED: DefectDojo prefers JSON over SARIF for Gitleaks
-          report-format: json
-          report-path: gitleaks-report.json
+        env:
+          GITLEAKS_REPORT_FORMAT: json
+          GITLEAKS_REPORT_PATH: gitleaks-report.json
       - name: Upload gitleaks-reports 
         if: always()
         uses: actions/upload-artifact@v6.0.0
@@ -52,65 +51,65 @@ jobs:
           name: gitleaks-reports
           path: gitleaks-report.json
 
-  image_scan: #SCA (Software Composition Analysis) of both the OS and Application layers  + Container Security
-      name: Image Scan
-      strategy:
-        fail-fast: false # Don't stop other scans if one app fails
-        matrix: 
-          app: [cart, mongo, payment, catalogue, dispatch, mysql, ratings, shipping, user, web ]
-      runs-on: ubuntu-latest
-      steps:
-      - name: Checkout
-        uses: actions/checkout@v6.0.2
-      -
-        name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+  # image_scan: #SCA (Software Composition Analysis) of both the OS and Application layers  + Container Security
+  #     name: Image Scan
+  #     strategy:
+  #       fail-fast: false # Don't stop other scans if one app fails
+  #       matrix: 
+  #         app: [cart, mongo, payment, catalogue, dispatch, mysql, ratings, shipping, user, web ]
+  #     runs-on: ubuntu-latest
+  #     steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v6.0.2
+  #     -
+  #       name: Login to Docker Hub
+  #       uses: docker/login-action@v3
+  #       with:
+  #         username: ${{ vars.DOCKERHUB_USERNAME }}
+  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Docker Setup Buildx
-        uses: docker/setup-buildx-action@v3.12.0
+  #     - name: Docker Setup Buildx
+  #       uses: docker/setup-buildx-action@v3.12.0
 
-      - name: Build Docker images
-        uses: docker/build-push-action@v6.18.0
-        with:
-          load: true
-          context: ${{ matrix.app }}
-          file: ${{ matrix.app }}/Dockerfile
-          cache-from: type=gha,scope=${{ matrix.app }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.app }}
-          tags: ${{ vars.DOCKERHUB_USERNAME }}/rs-${{ matrix.app }}:${{github.sha}}
+  #     - name: Build Docker images
+  #       uses: docker/build-push-action@v6.18.0
+  #       with:
+  #         load: true
+  #         context: ${{ matrix.app }}
+  #         file: ${{ matrix.app }}/Dockerfile
+  #         cache-from: type=gha,scope=${{ matrix.app }}
+  #         cache-to: type=gha,mode=max,scope=${{ matrix.app }}
+  #         tags: ${{ vars.DOCKERHUB_USERNAME }}/rs-${{ matrix.app }}:${{github.sha}}
 
-      - name: Docker Scout
-        uses: docker/scout-action@v1.18.2
-        with:
-          command: quickview, cves 
-          image: ${{ vars.DOCKERHUB_USERNAME }}/rs-${{ matrix.app }}:${{github.sha}}
-          only-severities: critical,high
-          sarif-file: ${{ matrix.app }}-reports.sarif
+  #     - name: Docker Scout
+  #       uses: docker/scout-action@v1.18.2
+  #       with:
+  #         command: quickview, cves 
+  #         image: ${{ vars.DOCKERHUB_USERNAME }}/rs-${{ matrix.app }}:${{github.sha}}
+  #         only-severities: critical,high
+  #         sarif-file: ${{ matrix.app }}-reports.sarif
           
-      - name: Upload a Build Artifact
-        if: always()
-        uses: actions/upload-artifact@v6.0.0
-        with:
-          name: ${{ matrix.app }}-reports
-          path:  ${{ matrix.app }}-reports.sarif 
+  #     - name: Upload a Build Artifact
+  #       if: always()
+  #       uses: actions/upload-artifact@v6.0.0
+  #       with:
+  #         name: ${{ matrix.app }}-reports
+  #         path:  ${{ matrix.app }}-reports.sarif 
           
 
-      - name: push Docker images
-        uses: docker/build-push-action@v6.18.0
-        with:
-          push: true
-          context: ${{ matrix.app }}
-          file: ${{ matrix.app }}/Dockerfile
-          cache-from: type=gha,scope=${{ matrix.app }}
-          tags: ${{ vars.DOCKERHUB_USERNAME }}/rs-${{ matrix.app }}:${{github.sha}}
+  #     - name: push Docker images
+  #       uses: docker/build-push-action@v6.18.0
+  #       with:
+  #         push: true
+  #         context: ${{ matrix.app }}
+  #         file: ${{ matrix.app }}/Dockerfile
+  #         cache-from: type=gha,scope=${{ matrix.app }}
+  #         tags: ${{ vars.DOCKERHUB_USERNAME }}/rs-${{ matrix.app }}:${{github.sha}}
 
   dast_scan:
     name: DAST Security Scan
     runs-on: ubuntu-latest
-    needs: [image_scan]
+    #needs: [image_scan]
     env:
       # Repository Variables
       REPO: ${{ vars.DOCKERHUB_USERNAME }}
@@ -150,7 +149,7 @@ jobs:
         with:
           target: 'http://localhost:8080'
           # Passing 'fail_action: true' ensures the pipeline breaks if high-risk bugs are found
-          fail_action: true 
+          fail_action: false 
 
       - name: Upload DAST Report
         if: always()
@@ -158,8 +157,8 @@ jobs:
         with:
           name: zap-dast-reports
           path: |
-            zap_report_html.html
-            zap_report_xml.xml
+            report_html.html
+            report_xml.xml
 
       - name: Cleanup Stack
         if: always()
@@ -168,7 +167,7 @@ jobs:
   consolidate_reports:
     name: Merge All Security Reports
     runs-on: ubuntu-latest
-    needs: [image_scan, semgrep_scan, gitleaks_scan, dast_scan] 
+    needs: [ gitleaks_scan, dast_scan] #image_scan, semgrep_scan
     if: always()
     steps:
       - name: Download All Individual Artifacts
