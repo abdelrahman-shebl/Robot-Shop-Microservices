@@ -4,4 +4,3 @@ global:
     operator: "Equal"
     value: "system"
     effect: "NoSchedule"
-    

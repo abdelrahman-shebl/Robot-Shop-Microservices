@@ -6,6 +6,9 @@ terraform {
     helm = {
       source = "hashicorp/helm"
     }
+    time = {
+      source  = "hashicorp/time"
+    }
   }
 }
 
@@ -74,6 +77,13 @@ resource "helm_release" "karpenter" {
   ]
 }
 
+resource "time_sleep" "wait_for_karpenter_crds" {
+  create_duration = "30s"
+
+  depends_on = [
+    helm_release.karpenter
+  ]
+}
 
 resource "kubectl_manifest" "karpenter_node_class" {
   
@@ -117,7 +127,7 @@ resource "kubectl_manifest" "karpenter_node_class" {
     }
   })
 
-  depends_on = [helm_release.karpenter]
+  depends_on = [time_sleep.wait_for_karpenter_crds]
 }
 
 # Spot Priority NodePool (default choice)
