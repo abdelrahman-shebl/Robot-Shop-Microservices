@@ -183,39 +183,39 @@ jobs:
           name: final-security-bundle # This will be the ONLY zip in the UI
           path: all-reports/          # Uploads the entire folder as one zip
 
-  update-k8s-values:
-    name: update k8s versions
-    runs-on: ubuntu-latest
-    needs: [image_scan, semgrep_scan, gitleaks_scan] 
-    if: always()
-    permissions: 
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          # Use ref to ensure we are on the exact branch that triggered the push
-          ref: ${{ github.ref_name }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+  # update-k8s-values:
+  #   name: update k8s versions
+  #   runs-on: ubuntu-latest
+  #   needs: [image_scan, semgrep_scan, gitleaks_scan] 
+  #   if: always()
+  #   permissions: 
+  #     contents: write
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         # Use ref to ensure we are on the exact branch that triggered the push
+  #         ref: ${{ github.ref_name }}
+  #         token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update, Commit and Push
-        env:
-          NEW_VERSION: ${{ github.sha }}
-        run: |
-          # 1. Configuration
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
+  #     - name: Update, Commit and Push
+  #       env:
+  #         NEW_VERSION: ${{ github.sha }}
+  #       run: |
+  #         # 1. Configuration
+  #         git config --global user.email "github-actions[bot]@users.noreply.github.com"
+  #         git config --global user.name "github-actions[bot]"
           
-          yq -i '.".image".version = strenv(NEW_VERSION)' helm/robot-shop/values.yaml
+  #         yq -i '.".image".version = strenv(NEW_VERSION)' helm/robot-shop/values.yaml
            
-          # 3. Stage the change
-          git add helm/robot-shop/values.yaml
+  #         # 3. Stage the change
+  #         git add helm/robot-shop/values.yaml
           
-          # 4. The "Safety Switch": Exit quietly if nothing changed
-          git diff --cached --quiet && echo "No changes to deploy" && exit 0
+  #         # 4. The "Safety Switch": Exit quietly if nothing changed
+  #         git diff --cached --quiet && echo "No changes to deploy" && exit 0
           
-          # 5. Commit and Push back to the active branch
-          git commit -m "chore: update images to ${{ github.sha }} [skip ci]"
-          git push origin ${{ github.ref_name }}
+  #         # 5. Commit and Push back to the active branch
+  #         git commit -m "chore: update images to ${{ github.sha }} [skip ci]"
+  #         git push origin ${{ github.ref_name }}
          
 
 
