@@ -41,12 +41,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6.0.2
 
-      # - name: Gitleaks
-      #   uses: gitleaks/gitleaks-action@v2.3.9
-      #   # continue-on-error: true
-      #   with:
-      #     report-format: sarif 
-      #     report-path: gitleaks-reports.sarif
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2.3.9
+        # continue-on-error: true
+        with:
+          report-format: sarif 
+          report-path: gitleaks-reports.sarif
 
       - name: Upload gitleaks-reports 
         if: always()
