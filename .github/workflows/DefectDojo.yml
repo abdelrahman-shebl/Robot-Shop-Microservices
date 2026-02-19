@@ -6,10 +6,16 @@ jobs:
   bulk_upload:
     runs-on: ubuntu-latest
     steps:
-      - name: Download Unified Bundle
-        uses: actions/download-artifact@v4
-        with:
-          name: final-security-bundle 
+      - name: Download via GitHub CLI
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Finds the latest artifact named 'final-security-bundle' in the repo
+          gh run download --name final-security-bundle --dir all-reports
+      # - name: Download Unified Bundle
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: final-security-bundle 
 
       - name: Fetch DefectDojo API Token
         id: get-token
