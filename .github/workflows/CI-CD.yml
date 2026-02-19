@@ -33,27 +33,24 @@ jobs:
         name: semgrep-reports
         path: "semgrep-reports*"
 
-  gitleaks_scan: # secrets scan
-
+  gitleaks_scan:
     name: testing gitleaks
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6.0.2
-
       - name: Gitleaks
         uses: gitleaks/gitleaks-action@v2.3.9
-        # continue-on-error: true
-        # with:
-        #   report-format: sarif 
-        #   report-path: gitleaks-reports.sarif
-
+        with:
+          # CHANGED: DefectDojo prefers JSON over SARIF for Gitleaks
+          report-format: json
+          report-path: gitleaks-report.json
       - name: Upload gitleaks-reports 
         if: always()
         uses: actions/upload-artifact@v6.0.0
         with:
           name: gitleaks-reports
-          path: results.sarif
+          path: gitleaks-report.json
 
   image_scan: #SCA (Software Composition Analysis) of both the OS and Application layers  + Container Security
       name: Image Scan
@@ -160,7 +157,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: zap-dast-reports
-          path: report_html.html
+          path: |
+            zap_report_html.html
+            zap_report_xml.xml
 
       - name: Cleanup Stack
         if: always()
