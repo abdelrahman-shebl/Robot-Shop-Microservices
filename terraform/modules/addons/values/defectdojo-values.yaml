@@ -3,7 +3,7 @@
 
 # Keep this false so it doesn't overwrite your custom admin credentials
 createSecret: false
-existingSecret: "defectdojo-admin-secrets"
+existingSecret: "my-dojo-defectdojo"
 
 # -- create valkey secret in defectdojo chart, outside of valkey chart
 # CHANGE TO TRUE: Generates the secret object Kubernetes is looking for (even if auth is disabled)
@@ -12,6 +12,10 @@ createValkeySecret: true
 # -- create postgresql secret in defectdojo chart, outside of postgresql chart
 # CHANGE TO TRUE: Generates the database connection secret for Django/Celery
 createPostgresqlSecret: true
+
+admin:
+  user: admin
+  password: ""
 
 host: "" 
 siteUrl: ""
@@ -51,9 +55,6 @@ celery:
 # 4. The Database (PostgreSQL)
 # We use the Bitnami sub-chart.
 postgresql:
-  auth:
-    postgresPassword: "defectdojo-postgres"
-    password: "defectdojo-postgres"
   primary:
     persistence:
       enabled: true
@@ -65,10 +66,6 @@ postgresql:
 valkey:
   enabled: true
   architecture: standalone 
-  
-  auth:
-    enabled: true
-    password: "defectdojo-valkey"
   primary:
     persistence:
       enabled: false

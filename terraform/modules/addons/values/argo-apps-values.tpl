@@ -201,6 +201,26 @@ applications:
       namespace: monitoring
       server: https://kubernetes.default.svc
 
+  grafana-dashboards:
+    namespace: argocd
+    project: default
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+    source:
+      path: K8s/grafana
+      repoURL: https://github.com/abdelrahman-shebl/Robot-Shop-Microservices.git
+      targetRevision: "feature/pipeline"
+    destination:
+      namespace: monitoring
+      server: https://kubernetes.default.svc
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-3"
+
 
   prometheus-mysql-exporter:
     namespace: argocd
@@ -370,6 +390,51 @@ applications:
       namespace: goldilocks
       server: https://kubernetes.default.svc
 
+  kyverno:
+    namespace: argocd
+    project: default
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+        - Replace=true
+    sources:
+      - chart: kyverno
+        repoURL: https://kyverno.github.io/kyverno/
+        targetRevision: "3.7.0"
+        helm:
+          valueFiles:
+            - $repo/terraform/modules/addons/values/kyverno-values.yaml
+      - <<: *repo_link
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-2"
+    destination:
+      namespace: kyverno
+      server: https://kubernetes.default.svc
+
+  kyverno-manifests:
+    namespace: argocd
+    project: default
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+    source: 
+      path: K8s/kyverno
+      repoURL: https://github.com/abdelrahman-shebl/Robot-Shop-Microservices.git
+      targetRevision: "feature/pipeline"
+    destination:
+      namespace: kyverno
+      server: https://kubernetes.default.svc
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-1"
+
   robot-shop:
     namespace: argocd
     project: default
@@ -393,7 +458,7 @@ applications:
       - <<: *repo_link
     metadata:
       annotations:
-        argocd.argoproj.io/sync-wave: "-1"
+        argocd.argoproj.io/sync-wave: "0"
     destination:
       namespace: robotshop
       server: https://kubernetes.default.svc

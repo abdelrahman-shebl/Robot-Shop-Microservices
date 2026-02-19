@@ -122,6 +122,9 @@ module "eks" {
 
   # 3. Addons
   addons = {
+    eks-pod-identity-agent = {
+      before_compute = true
+    }
     vpc-cni = {
       before_compute = true
     }
@@ -152,9 +155,19 @@ module "eks" {
         ]
       })
     }
-    eks-pod-identity-agent = {
-      before_compute = true
+    metrics-server = {
+      configuration_values = jsonencode({
+        tolerations = [
+          {
+            key      = "workload-type"
+            operator = "Equal"
+            value    = "system"
+            effect   = "NoSchedule"
+          }
+        ]
+      })
     }
+
     aws-ebs-csi-driver = {
       pod_identity_association = [{
         role_arn        = module.ebs_csi_infra.iam_role_arn

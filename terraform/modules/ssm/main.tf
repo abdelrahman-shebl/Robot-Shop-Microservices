@@ -50,7 +50,9 @@ resource "aws_ssm_parameter" "dojo_creds" {
   value = jsonencode({
 
     # Dojo Credentials
-    DD_ADMIN_USER     = var.secrets_map.DD_ADMIN_USER
-    DD_ADMIN_PASSWORD = var.secrets_map.DD_ADMIN_PASSWORD
+    DD_ADMIN_USER                  = var.secrets_map.DD_ADMIN_USER
+    DD_ADMIN_PASSWORD             = var.secrets_map.DD_ADMIN_PASSWORD
+    DD_SECRET_KEY                 = var.secrets_map.DD_SECRET_KEY
+    DD_CREDENTIAL_AES_256_KEY     = var.secrets_map.DD_CREDENTIAL_AES_256_KEY
   })
 }

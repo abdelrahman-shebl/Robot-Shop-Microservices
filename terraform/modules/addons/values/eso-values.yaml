@@ -1,5 +1,0 @@
-installCRDs: true
-
-serviceAccount:
-  create: true
-  name: "eso-sa"
