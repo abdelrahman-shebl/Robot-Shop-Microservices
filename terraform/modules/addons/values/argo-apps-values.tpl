@@ -424,6 +424,7 @@ applications:
         selfHeal: true
       syncOptions:
         - CreateNamespace=true
+        - SkipDryRunOnMissingResource=true
     source: 
       path: K8s/kyverno
       repoURL: https://github.com/abdelrahman-shebl/Robot-Shop-Microservices.git
