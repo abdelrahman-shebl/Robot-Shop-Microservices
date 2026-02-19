@@ -68,7 +68,9 @@ postgresql:
 # REPLACE 'redis' BLOCK WITH 'valkey' BLOCK
 valkey:
   enabled: true
-  architecture: standalone 
+  architecture: standalone
+  auth:
+    password: "valkey-dojo-pass"
   primary:
     persistence:
       enabled: false
