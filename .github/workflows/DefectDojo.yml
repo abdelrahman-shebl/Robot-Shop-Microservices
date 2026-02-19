@@ -6,6 +6,8 @@ jobs:
   bulk_upload:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
       - name: Download via GitHub CLI
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
