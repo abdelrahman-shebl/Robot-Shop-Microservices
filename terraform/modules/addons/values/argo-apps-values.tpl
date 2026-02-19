@@ -399,7 +399,7 @@ applications:
         selfHeal: true
       syncOptions:
         - CreateNamespace=true
-        - Replace=true
+        - ServerSideApply=true
     sources:
       - chart: kyverno
         repoURL: https://kyverno.github.io/kyverno/
