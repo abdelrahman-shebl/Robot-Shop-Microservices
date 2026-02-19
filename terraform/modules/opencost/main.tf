@@ -217,8 +217,8 @@ resource "kubernetes_namespace" "opencost_ns" {
   }
 }
 resource "aws_eks_pod_identity_association" "opencost" {
-  cluster_name    =  var.cluster_name #aws_eks_cluster.main.name  
-  namespace       = "opencost"
+  cluster_name    =  var.cluster_name 
+  namespace       = kubernetes_namespace.opencost_ns.metadata[0].name
   
   service_account = "opencost-sa"
   role_arn        = aws_iam_role.opencost_pod.arn
@@ -237,6 +237,7 @@ resource "kubernetes_secret" "opencost_cloud_integration" {
     "cloud-integration.json" = jsonencode({
       aws = {
         projectID        = data.aws_caller_identity.current.account_id
+        namespace        = kubernetes_namespace.opencost_ns.metadata[0].name
         athenaBucketName = aws_s3_bucket.opencost_results.bucket
         athenaDatabase   = aws_glue_catalog_database.opencost.name
         athenaTable      = "opencost"
