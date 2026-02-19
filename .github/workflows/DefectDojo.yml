@@ -1,6 +1,6 @@
 name: Defect-Dojo-Upload
 on:
-  workflow_dispatch: 
+  workflow_dispatch:  
 
 jobs:
   bulk_upload:
