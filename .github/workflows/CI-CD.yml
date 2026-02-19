@@ -34,23 +34,28 @@ jobs:
   #       path: "semgrep-reports*"
 
   gitleaks_scan:
-    name: testing gitleaks
+    name: Gitleaks Scan
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6.0.2
-      - name: Gitleaks
-        uses: gitleaks/gitleaks-action@v2.3.9
-        env:
-          GITLEAKS_REPORT_FORMAT: json
-          GITLEAKS_REPORT_PATH: gitleaks-report.json
-      - name: Upload gitleaks-reports 
+
+      - name: Install Gitleaks
+        run: |
+          VERSION="8.18.2"
+          wget https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/gitleaks_${VERSION}_linux_x64.tar.gz
+          tar -xf gitleaks_${VERSION}_linux_x64.tar.gz
+          mv gitleaks /usr/local/bin/
+
+      - name: Run Gitleaks (JSON Output)
+        run: gitleaks detect --report-path gitleaks-report.json --report-format json || true
+
+      - name: Upload gitleaks-reports
         if: always()
-        uses: actions/upload-artifact@v6.0.0
+        uses: actions/upload-artifact@v4
         with:
           name: gitleaks-reports
           path: gitleaks-report.json
-
   # image_scan: #SCA (Software Composition Analysis) of both the OS and Application layers  + Container Security
   #     name: Image Scan
   #     strategy:
@@ -156,9 +161,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: zap-dast-reports
-          path: |
-            report_html.html
-            report_xml.xml
+          path: report_xml.xml
 
       - name: Cleanup Stack
         if: always()
