@@ -16,24 +16,45 @@ jobs:
         run: |
           # Finds the latest artifact named 'final-security-bundle' in the repo
           gh run download --name final-security-bundle --dir all-reports
-
       - name: Fetch DefectDojo API Token
         id: get-token
         run: |
-          # Dynamically fetch the token using credentials stored in GitHub Secrets
-          TOKEN=$(curl -s -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/api-token-auth/" \
+          echo "Testing connection to: ${{ secrets.DEFECTDOJO_URL }}/api/v2/api-token-auth/"
+          
+          # 1. Run cURL in verbose mode (-v) without jq to see the exact server response
+          RAW_RESPONSE=$(curl -v -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/api-token-auth/" \
             -H "Content-Type: application/json" \
-            -d '{"username":"${{ secrets.DD_USERNAME }}","password":"${{ secrets.DD_PASSWORD }}"}' | jq -r .token)
+            -d '{"username":"${{ secrets.DD_USERNAME }}","password":"${{ secrets.DD_PASSWORD }}"}')
+            
+          echo "Raw Server Response: $RAW_RESPONSE"
+          
+          # 2. Now try to extract the token
+          TOKEN=$(echo $RAW_RESPONSE | jq -r .token 2>/dev/null)
             
           if [ "$TOKEN" == "null" ] || [ -z "$TOKEN" ]; then
-            echo "Error: Failed to retrieve API token. Check your URL, credentials, and ensure Codespace port is Public."
+            echo "Error: Failed to retrieve API token. Check the raw response above."
             exit 1
           fi
           
-          # Securely mask the token in GitHub Actions logs
           echo "::add-mask::$TOKEN"
-          # Export it as an environment variable for the upload step
           echo "DD_TOKEN=$TOKEN" >> $GITHUB_ENV
+      # - name: Fetch DefectDojo API Token
+      #   id: get-token
+      #   run: |
+      #     # Dynamically fetch the token using credentials stored in GitHub Secrets
+      #     TOKEN=$(curl -s -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/api-token-auth/" \
+      #       -H "Content-Type: application/json" \
+      #       -d '{"username":"${{ secrets.DD_USERNAME }}","password":"${{ secrets.DD_PASSWORD }}"}' | jq -r .token)
+            
+      #     if [ "$TOKEN" == "null" ] || [ -z "$TOKEN" ]; then
+      #       echo "Error: Failed to retrieve API token. Check your URL, credentials, and ensure Codespace port is Public."
+      #       exit 1
+      #     fi
+          
+      #     # Securely mask the token in GitHub Actions logs
+      #     echo "::add-mask::$TOKEN"
+      #     # Export it as an environment variable for the upload step
+      #     echo "DD_TOKEN=$TOKEN" >> $GITHUB_ENV
 
       - name: Bulk Upload to DefectDojo
         run: |
