@@ -72,7 +72,14 @@ module "eks" {
 
   name    = var.cluster_name
   kubernetes_version = var.eks_version
+  # Disable CloudWatch Log Group creation and cluster logging
+  create_cloudwatch_log_group = false
+  enabled_log_types           = []
 
+  # Disable KMS Key creation for cluster secret encryption
+  create_kms_key            = false
+  encryption_config = null
+  attach_encryption_policy = false
   # 1. Network Configuration
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
@@ -223,6 +230,8 @@ module "karpenter_chart_and_crds" {
   queue_name     = module.karpenter_infra.queue_name
   cluster_name   = var.cluster_name
   karpenter_role = module.karpenter_infra.node_iam_role_name
+  private_subnet_ids = module.vpc.private_subnets
+  node_security_group_id = module.eks.node_security_group_id
   depends_on = [ module.eks ]
 
 }

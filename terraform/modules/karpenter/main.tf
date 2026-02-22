@@ -78,7 +78,7 @@ resource "helm_release" "karpenter" {
 }
 
 resource "time_sleep" "wait_for_karpenter_crds" {
-  create_duration = "30s"
+  create_duration = "120s"
 
   depends_on = [
     helm_release.karpenter
@@ -101,17 +101,13 @@ resource "kubectl_manifest" "karpenter_node_class" {
         }
       ]
       subnetSelectorTerms = [
-        {
-          tags = {
-            "karpenter.sh/discovery" = var.cluster_name
-          }
+        for subnet_id in var.private_subnet_ids : {
+          id = subnet_id
         }
       ]
       securityGroupSelectorTerms = [
         {
-          tags = {
-            "karpenter.sh/discovery" = var.cluster_name
-          }
+          id = var.node_security_group_id
         }
       ]
       amiFamily = "AL2023"

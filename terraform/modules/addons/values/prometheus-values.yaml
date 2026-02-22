@@ -115,3 +115,5 @@ prometheusOperator:
   admissionWebhooks:
     enabled: false
     patch: null
+  tls:  
+    enabled: false
