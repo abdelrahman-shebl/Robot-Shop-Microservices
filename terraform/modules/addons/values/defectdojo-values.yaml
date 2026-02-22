@@ -20,6 +20,14 @@ siteUrl: ""
 # 2. Django (uWSGI): The web interface and API.
 django:
   replicas: 1
+# ADD THIS BLOCK: Give Django enough RAM to survive password hashing
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 1000m
+      memory: 2Gi # Raised to prevent OOMKilled during login
   ingress:
     enabled: true
     ingressClassName: "traefik"
