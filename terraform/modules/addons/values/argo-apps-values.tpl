@@ -15,6 +15,7 @@ applications:
         selfHeal: true
       syncOptions:
         - CreateNamespace=true 
+        - ServerSideApply=true # Added to handle CRD size limits
     sources:
       - chart: cert-manager
         repoURL: https://charts.jetstack.io
@@ -40,7 +41,7 @@ applications:
         selfHeal: true
       syncOptions:
         - CreateNamespace=true
-        - SkipDryRunOnMissingResource=true
+        - SkipDryRunOnMissingResource=true #Tells ArgoCD to ignore that validation error and proceed, trusting that the CRD will exist by the time wave -4 executes.
     source:
       path: K8s/cert-manager
       repoURL: https://github.com/abdelrahman-shebl/Robot-Shop-Microservices.git
@@ -86,6 +87,7 @@ applications:
         selfHeal: true
       syncOptions:
         - CreateNamespace=true
+        - SkipDryRunOnMissingResource=true # Added to bypass dry-run validation for ESO CRs
     source:
       path: K8s/eso
       repoURL: https://github.com/abdelrahman-shebl/Robot-Shop-Microservices.git
@@ -166,7 +168,6 @@ applications:
       syncOptions:
         - CreateNamespace=true
         - ServerSideApply=true
-        - Replace=true
         - SkipDryRunOnMissingResource=true
     sources:
       - chart: kube-prometheus-stack
@@ -324,6 +325,7 @@ applications:
         selfHeal: true
       syncOptions:
         - CreateNamespace=true
+        - SkipDryRunOnMissingResource=true
     sources:
       - chart: opencost
         repoURL: https://opencost.github.io/opencost-helm-chart
@@ -363,6 +365,8 @@ applications:
         selfHeal: true
       syncOptions:
         - CreateNamespace=true
+        - SkipDryRunOnMissingResource=true
+        - ServerSideApply=true
     sources:
       - chart: goldilocks
         repoURL: https://charts.fairwinds.com/stable
@@ -425,6 +429,13 @@ applications:
       syncOptions:
         - CreateNamespace=true
         - SkipDryRunOnMissingResource=true
+        - ServerSideApply=true
+      retry:
+        limit: 5
+        backoff:
+          duration: 5s
+          factor: 2
+          maxDuration: 3m
     source: 
       path: K8s/kyverno
       repoURL: https://github.com/abdelrahman-shebl/Robot-Shop-Microservices.git

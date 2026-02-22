@@ -2,19 +2,17 @@
 # This is the domain you will use to access the dashboard
 
 # Keep this true so the chart creates the 'defectdojo' secret needed by all containers
-createSecret: true
+createSecret: false
 
 # -- create valkey secret in defectdojo chart, outside of valkey chart
-# CHANGE TO TRUE: Generates the secret object Kubernetes is looking for (even if auth is disabled)
-createValkeySecret: true
+createValkeySecret: false
 
 # -- create postgresql secret in defectdojo chart, outside of postgresql chart
-# CHANGE TO TRUE: Generates the database connection secret for Django/Celery
-createPostgresqlSecret: true
+createPostgresqlSecret: false
 
 admin:
   user: admin
-  password: "admin"
+  password: ""
 
 host: "" 
 siteUrl: ""
@@ -54,10 +52,16 @@ celery:
 # 4. The Database (PostgreSQL)
 # We use the Bitnami sub-chart.
 postgresql:
+
   auth:
-    # Explicit stable passwords to survive PVC-backed redeployments
-    password: "defectdojo-db-pass"
-    postgresPassword: "postgres-superuser-pass"
+    username: defectdojo
+    database: defectdojo
+    # Point to the shared master secret
+    existingSecret: "defectdojo" 
+    secretKeys:
+      # Tell Postgres exactly which keys in the JSON to use
+      adminPasswordKey: "POSTGRES_POSTGRES_PASSWORD" 
+      userPasswordKey: "POSTGRES_PASSWORD"
   primary:
     persistence:
       enabled: true
@@ -70,7 +74,10 @@ valkey:
   enabled: true
   architecture: standalone
   auth:
-    password: "valkey-dojo-pass"
+    # Point to the shared master secret
+    existingSecret: "defectdojo"
+    # Tell Valkey exactly which key in the JSON to use
+    existingSecretPasswordKey: "VALKEY_PASSWORD"
   primary:
     persistence:
       enabled: false

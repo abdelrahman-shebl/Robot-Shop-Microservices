@@ -1,6 +1,8 @@
 
 clusterName: ""  # The name of your EKS Cluster
-
+serviceAccount:
+  create: true
+  name: "opencost-sa"
 opencost:
   cloudCost:
     enabled: true
@@ -13,14 +15,11 @@ opencost:
     external:
       enabled: true
       # REPLACE this with your actual Prometheus service URL
-      # Format: http://<service-name>.<namespace>.svc.cluster.local:<port>
       url: http://monitor-prometheus.monitoring.svc:80
   metrics:
     serviceMonitor:
       enabled: true
-  serviceAccount:
-    create: true
-    name: "opencost-sa"
+
   ui:
     ingress:
       enabled: "true"

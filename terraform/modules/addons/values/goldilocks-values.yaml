@@ -8,6 +8,8 @@ vpa:
     enabled: true
   updater:
     enabled: false # Keep false! We only want advice, we don't want it restarting pods.
+  admissionController: 
+    enabled: false # This prevents the Helm chart from generating the random TLS certificate, stops any potential YAML mutations, and guarantees that ArgoCD stays perfectly green and synchronized.
 # 2. Controller Settings
 controller:
   # This flag makes Goldilocks scan EVERY namespace automatically.

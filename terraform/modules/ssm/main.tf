@@ -54,5 +54,9 @@ resource "aws_ssm_parameter" "dojo_creds" {
     METRICS_HTTP_AUTH_PASSWORD    = var.secrets_map.METRICS_HTTP_AUTH_PASSWORD
     DD_SECRET_KEY                 = var.secrets_map.DD_SECRET_KEY
     DD_CREDENTIAL_AES_256_KEY     = var.secrets_map.DD_CREDENTIAL_AES_256_KEY
+
+    POSTGRES_PASSWORD             = var.secrets_map.DD_POSTGRES_PASSWORD
+    POSTGRES_POSTGRES_PASSWORD    = var.secrets_map.DD_POSTGRES_POSTGRES_PASSWORD
+    VALKEY_PASSWORD               = var.secrets_map.DD_VALKEY_PASSWORD
   })
 }

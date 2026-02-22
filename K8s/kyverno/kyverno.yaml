@@ -3,6 +3,14 @@ kind: ImageValidatingPolicy
 metadata:
   name: verify-robot-shop
 spec:
+  # CRITICAL FIX: Tell the API server to intercept Pod creation
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+        
   matchImageReferences:
     - glob: "docker.io/shebl22/rs-*"
   attestors:

@@ -1,8 +1,14 @@
 mysql:
   host: "mysql"
   port: 3306
-  user: root
-  pass: "change_me_root_password"
+  user: "root"
+  existingPasswordSecret:
+    name: "mysql-secrets"
+    key: "MYSQL_ROOT_PASSWORD"
+    
+  # user: root
+  # pass: "change_me_root_password"
+
 
 serviceMonitor:
   enabled: true

@@ -275,7 +275,7 @@ module "addons" {
   cluster_name           = var.cluster_name
   region                 = var.region
   cloudIntegrationSecret = module.opencost_infra.cloudIntegrationSecret
-  depends_on = [ module.eks, module.karpenter_chart_and_crds ]
+  depends_on = [ module.eks, module.karpenter_chart_and_crds, terraform_data.ebs_volume_cleanup ]
 }
 
 
@@ -292,55 +292,62 @@ resource "terraform_data" "ebs_volume_cleanup" {
     region       = var.region
   }
 
-  # This ensures the script runs BEFORE the EKS cluster and CSI driver are destroyed
-  depends_on = [
-    module.eks
-  ]
+  depends_on = [module.eks]
 
   provisioner "local-exec" {
     when    = destroy
     command = <<-EOT
-      echo "Step 1: Authenticating to EKS cluster..."
+      echo "Step 1: Authenticating..."
       aws eks update-kubeconfig --region ${self.triggers_replace.region} --name ${self.triggers_replace.cluster_name}
 
-      echo "Step 2: Forcefully deleting all PersistentVolumeClaims to trigger graceful EBS deletion..."
-      # This clears out data volumes requested by Helm charts/StatefulSets
-      kubectl delete pvc --all --all-namespaces --ignore-not-found=true --timeout=5m || true
+      echo "Step 2: Fixing Hanging Namespaces (Patching Finalizers)..."
+      # This fixes the 'Terminating' hang for any namespace by removing the finalizer block
+      for ns in $(kubectl get namespaces | grep Terminating | awk '{print $1}'); do
+        echo "Force cleaning namespace: $ns"
+        kubectl patch namespace $ns -p '{"spec":{"finalizers":null}}' --type=merge || true
+      done
+
+      echo "Step 3: Force Deleting PVCs..."
+      kubectl delete pvc --all --all-namespaces --ignore-not-found=true --timeout=2m || true
       
-      echo "Step 3: Waiting 30 seconds for the EBS CSI driver to detach and delete volumes..."
-      sleep 30
+      echo "Step 4: Waiting for detachment..."
+      sleep 40
       
-      echo "Step 4: Sweeping AWS for ANY orphaned 'available' EBS volumes..."
+      echo "Step 5: Enhanced EBS Sweep (Catching 'Available' AND 'In-Use' Orphans)..."
       CLUSTER_NAME="${self.triggers_replace.cluster_name}"
       
-      # Sweep 1: Find orphaned volumes created by the EBS CSI Driver (App Data)
-      APP_VOLUMES=$(aws ec2 describe-volumes \
-        --filters "Name=status,Values=available" "Name=tag:kubernetes.io/cluster/$CLUSTER_NAME,Values=owned" \
-        --query "Volumes[*].VolumeId" \
-        --output text)
+      # We find ALL volumes tagged to this cluster, regardless of state
+      ALL_VOLS=$(aws ec2 describe-volumes \
+        --filters "Name=tag:kubernetes.io/cluster/$CLUSTER_NAME,Values=owned" \
+        --query "Volumes[*].VolumeId" --output text)
 
-      # Sweep 2: Find orphaned root volumes created by Karpenter (OS Drives)
-      NODE_VOLUMES=$(aws ec2 describe-volumes \
-        --filters "Name=status,Values=available" "Name=tag-key,Values=karpenter.sh/nodepool" \
-        --query "Volumes[*].VolumeId" \
-        --output text)
-        
-      # Combine both lists
-      ALL_ORPHANS="$APP_VOLUMES $NODE_VOLUMES"
-      
-      # Loop through and forcefully delete any found volumes
-      for vol in $ALL_ORPHANS; do
+      # And all Karpenter volumes
+      KARP_VOLS=$(aws ec2 describe-volumes \
+        --filters "Name=tag-key,Values=karpenter.sh/nodepool" \
+        --query "Volumes[*].VolumeId" --output text)
+
+      COMBINED_VOLS="$ALL_VOLS $KARP_VOLS"
+
+      for vol in $COMBINED_VOLS; do
         if [ -n "$vol" ] && [ "$vol" != "None" ]; then
-          echo "Forcefully deleting orphaned EBS volume: $vol"
-          aws ec2 delete-volume --volume-id "$vol" || true
+          # Check if it's still attached (In-use)
+          STATE=$(aws ec2 describe-volumes --volume-ids $vol --query "Volumes[0].State" --output text)
+          
+          if [ "$STATE" == "in-use" ]; then
+            echo "Volume $vol is still attached. Forcing detachment..."
+            aws ec2 detach-volume --volume-id $vol --force || true
+            sleep 10
+          fi
+
+          echo "Deleting EBS volume: $vol"
+          aws ec2 delete-volume --volume-id $vol || true
         fi
       done
       
-      echo "EBS sweep complete. Clean exit."
+      echo "Cleanup complete."
     EOT
   }
 }
-
 resource "terraform_data" "cleanup_load_balancers" {
   triggers_replace = {
     cluster_name = var.cluster_name
