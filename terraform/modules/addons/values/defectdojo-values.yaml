@@ -28,6 +28,19 @@ django:
     limits:
       cpu: 1000m
       memory: 2Gi # Raised to prevent OOMKilled during login
+  uwsgi:  
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: 2000m
+        # MASSIVE BUMP: Give the hasher room to breathe
+        memory: 2Gi 
+    appSettings:
+      # Reduce the baseline memory footprint by cutting workers in half
+      processes: 2
+      threads: 2
   ingress:
     enabled: true
     ingressClassName: "traefik"
