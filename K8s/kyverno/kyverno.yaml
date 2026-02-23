@@ -20,6 +20,3 @@ spec:
           identities:
             - subjectRegExp: "https://github.com/abdelrahman-shebl/Robot-Shop-Microservices/.github/workflows/CI-CD.yml@.*"
               issuer: "https://token.actions.githubusercontent.com"
-  validations:
-    - expression: "true"
-      message: "Image signature verification passed"
