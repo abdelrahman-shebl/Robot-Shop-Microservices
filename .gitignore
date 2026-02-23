@@ -24,6 +24,16 @@ DEPLOYMENT_FIXES_SUMMARY.md
 INFRASTRUCTURE_UPDATE_SUMMARY.md
 INGRESS_DNS_TRAEFIK_VERIFICATION.md
 
+#----------#
 ARGOCD_INGRESS_CLEANUP.md 
 ARGOCD_INGRESS_TROUBLESHOOTING.md 
 HELM_CHARTS_TRAEFIK_MODIFICATIONS.md
+
+ helm/external-charts-explanation/* 
+ helm/helm-explanation/*
+ helm/multi-environment-explanation/*
+
+charts/*
+
+terraform/modules/edns/*
+terraform/modules/eso/*
