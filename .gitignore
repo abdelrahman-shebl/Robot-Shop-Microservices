@@ -37,3 +37,12 @@ charts/*
 
 terraform/modules/edns/*
 terraform/modules/eso/*
+helm/external-charts-explanation/EXTERNAL-CHARTS-GUIDE.md
+helm/external-charts-explanation/VALUES-DISCOVERY-GUIDE.md
+helm/helm-explanation/COMMON-TEMPLATES-GUIDE.md
+helm/helm-explanation/README-HELM-TEMPLATES-GUIDE.md
+helm/helm-explanation/README-PRODUCTION-HELM-ARCHITECTURE.md
+helm/multi-environment-explanation/CHART-REFERENCE.md
+helm/multi-environment-explanation/CHART-YAML-REVIEW-COMPLETE.md
+helm/multi-environment-explanation/MULTI-ENVIRONMENT-VALUES-GUIDE.md
+helm/multi-environment-explanation/UMBRELLA-CHART-GUIDE.md
