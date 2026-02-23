@@ -46,3 +46,5 @@ helm/multi-environment-explanation/CHART-REFERENCE.md
 helm/multi-environment-explanation/CHART-YAML-REVIEW-COMPLETE.md
 helm/multi-environment-explanation/MULTI-ENVIRONMENT-VALUES-GUIDE.md
 helm/multi-environment-explanation/UMBRELLA-CHART-GUIDE.md
+
+helm/robot-shop/CHARTS-DOCUMENTATION/*
