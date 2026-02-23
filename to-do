@@ -1,8 +1,0 @@
-3. The Prometheus URL Naming Quirk
-
-You configured the Prometheus URL as:
-url: http://monitor-prometheus.monitoring.svc:80
-
-Because you used fullnameOverride: "monitor" in your Prometheus stack, you should double-check the exact service name Kubernetes generated. By default, the kube-prometheus-stack chart concatenates the release name and the component name, frequently resulting in monitor-kube-prometheus-prometheus.
-
-Before calling this done, run kubectl get svc -n monitoring to confirm the exact service name and update that URL accordingly.
