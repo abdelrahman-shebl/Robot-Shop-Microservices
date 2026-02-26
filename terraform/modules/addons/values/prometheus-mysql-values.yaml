@@ -5,10 +5,6 @@ mysql:
   existingPasswordSecret:
     name: "mysql-secrets"
     key: "MYSQL_ROOT_PASSWORD"
-    
-  # user: root
-  # pass: "change_me_root_password"
-
 
 serviceMonitor:
   enabled: true

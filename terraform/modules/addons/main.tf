@@ -60,6 +60,11 @@ resource "kubernetes_storage_class" "gp3" {
   }
 }
 
+# INFO: This script is kept as a fallback but should no longer be needed.
+# The cascade delete finalizer on each ArgoCD Application now handles PVC/EBS
+# cleanup automatically when apps are removed during terraform destroy.
+# Uncomment and test if volumes are found orphaned after a destroy.
+/*
 resource "terraform_data" "cleanup_ebs_volumes" {
   triggers_replace = {
     cluster_name = var.cluster_name
@@ -95,3 +100,4 @@ resource "terraform_data" "cleanup_ebs_volumes" {
     EOT
   }
 }
+*/

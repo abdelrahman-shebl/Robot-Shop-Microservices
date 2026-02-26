@@ -1,12 +1,11 @@
 
 # 1. The Provider
-# Tell it which cloud API to talk to.
 provider: aws
 
 # 2. Scope (Safety Filter)
 # CRITICAL: Only allow it to touch specific domains. 
 domainFilters:
-  - "" # The domain you used in your Ingress
+  - "" 
 
 # 3. AWS Configuration
 aws:
@@ -14,7 +13,6 @@ aws:
   zoneType: public # public, private, or restricted
 
 # 4. Synchronization Policy
-# Options: 
 #  - sync: Creates AND Deletes records (Full automation).
 #  - upsert-only: Creates/Updates but NEVER deletes (Safe for beginners).
 policy: sync
@@ -23,10 +21,9 @@ policy: sync
 # CRITICAL: ExternalDNS creates TXT records to "mark" which records it owns.
 # This prevents it from deleting records created by other clusters or Terraform.
 registry: txt
-txtOwnerId: "" # Pick a unique name for this cluster
+txtOwnerId: "" # Pick a unique name for the cluster
 txtPrefix: external-dns-
 
-# 6. Service Account (For Pod Identity)
 serviceAccount:
   create: true
   name: "edns-sa" 

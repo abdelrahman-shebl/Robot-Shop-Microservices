@@ -3,12 +3,19 @@
   targetRevision: "feature/pipeline"
   ref: repo
 
+# Cascade delete: when the ArgoCD Application is removed, ArgoCD will also
+# This ensures EBS volumes are cleaned up automatically on terraform destroy.
+.finalizer: &cascade_delete
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+
 applications:
 
   # cert-manager - must deploy first for TLS certificates
   cert-manager:
     namespace: argocd
     project: default
+    <<: *cascade_delete
     syncPolicy:
       automated:
         prune: true
@@ -35,6 +42,7 @@ applications:
   cert-manager-manifests:
     namespace: argocd
     project: default
+    <<: *cascade_delete
     syncPolicy:
       automated:
         prune: true
@@ -56,6 +64,7 @@ applications:
   external-secrets-operator:
     namespace: argocd
     project: default
+    <<: *cascade_delete
     syncPolicy:
       automated:
         prune: true
@@ -81,6 +90,7 @@ applications:
   external-secrets-manifests:
     namespace: argocd
     project: default
+    <<: *cascade_delete
     syncPolicy:
       automated:
         prune: true
@@ -103,6 +113,7 @@ applications:
   traefik:
     namespace: argocd
     project: default
+    <<: *cascade_delete
     syncPolicy:
       automated:
         prune: true
@@ -128,6 +139,7 @@ applications:
   external-dns:
     namespace: argocd
     project: default
+    <<: *cascade_delete
     syncPolicy:
       automated:
         prune: true
@@ -161,6 +173,7 @@ applications:
   kube-prometheus-stack:
     namespace: argocd
     project: default
+    <<: *cascade_delete
     syncPolicy:
       automated:
         prune: true
@@ -205,6 +218,7 @@ applications:
   grafana-dashboards:
     namespace: argocd
     project: default
+    <<: *cascade_delete
     syncPolicy:
       automated:
         prune: true
@@ -226,6 +240,7 @@ applications:
   prometheus-mysql-exporter:
     namespace: argocd
     project: default
+    <<: *cascade_delete
     syncPolicy:
       automated:
         prune: true
@@ -250,6 +265,7 @@ applications:
   prometheus-mongodb-exporter:
     namespace: argocd
     project: default
+    <<: *cascade_delete
     syncPolicy:
       automated:
         prune: true
@@ -276,6 +292,7 @@ applications:
   defectdojo:
     namespace: argocd
     project: default
+    <<: *cascade_delete
     syncPolicy:
       automated:
         prune: true
@@ -319,6 +336,7 @@ applications:
   opencost:
     namespace: argocd
     project: default
+    <<: *cascade_delete
     syncPolicy:
       automated:
         prune: true
@@ -359,6 +377,7 @@ applications:
   goldilocks:
     namespace: argocd
     project: default
+    <<: *cascade_delete
     syncPolicy:
       automated:
         prune: true
@@ -397,6 +416,7 @@ applications:
   kyverno:
     namespace: argocd
     project: default
+    <<: *cascade_delete
     syncPolicy:
       automated:
         prune: true
@@ -422,6 +442,7 @@ applications:
   kyverno-manifests:
     namespace: argocd
     project: default
+    <<: *cascade_delete
     syncPolicy:
       automated:
         prune: true
@@ -450,6 +471,7 @@ applications:
   robot-shop:
     namespace: argocd
     project: default
+    <<: *cascade_delete
     syncPolicy:
       automated:
         prune: true

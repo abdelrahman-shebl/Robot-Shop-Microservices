@@ -7,10 +7,3 @@ podLabels:
 existingSecret:
   name: "mongo-secrets"
   key: "MONGODB_URI"
-
-# mongodb:
-#   uri: "mongodb://mongodb:27017"
-
-
-# mongodb:
-#   uri: "mongodb://admin:admin@mongodb:27017/?authSource=admin"

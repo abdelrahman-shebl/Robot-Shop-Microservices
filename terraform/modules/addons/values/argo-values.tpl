@@ -12,40 +12,36 @@ repoServer:
   autoscaling:
     enabled: true
     minReplicas: 1
-    maxReplicas: 3 # Allow it to burst if you deploy everything at once
+    maxReplicas: 3 
   resources:
     requests:
-      # Needs a little CPU to process Helm charts
       cpu: 50m
       memory: 128Mi
     limits:
       cpu: 500m
-      memory: 1Gi # Give it headroom for large charts
+      memory: 1Gi 
 
 
 # --- 2. CONTROLLER (The Brain) ---
 controller:
-  replicas: 1 # You rarely need 2 for small clusters
+  replicas: 1 
   resources:
     requests:
-      # Very efficient, mostly just watches the API
       cpu: 100m 
       memory: 256Mi
     limits:
       cpu: 1
       memory: 2Gi
-  # Good metrics for debugging, keeps resource cost low
   metrics:
     enabled: true 
     serviceMonitor:
-      enabled: false # Turn off unless you actually have Prometheus running
+      enabled: false 
 
 # --- 3. SERVER (The UI) ---
 server:
   replicas: 1
   resources:
     requests:
-      # Sits idle most of the time
       cpu: 20m 
       memory: 64Mi
     limits:
@@ -54,12 +50,7 @@ server:
   
   # Run in insecure mode - Traefik handles TLS termination
   insecure: true
-  
-  # Service ports configuration - expose on port 80 only
-  # service:
-  #   port: 80   #-----><------#
-  
-  # KEEP YOUR INGRESS CONFIG
+
   ingress:
     enabled: true
     hostname: argocd.${domain}
@@ -78,7 +69,6 @@ server:
     # Backend should use HTTP (port 80), not HTTPS
     https: false
 
-# Keep ApplicationSet, it's tiny and useful
 applicationSet:
   replicas: 1
   resources:

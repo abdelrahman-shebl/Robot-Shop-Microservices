@@ -1,13 +1,9 @@
 # 1. Global Settings
-# This is the domain you will use to access the dashboard
 
-# Keep this true so the chart creates the 'defectdojo' secret needed by all containers
 createSecret: false
 
-# -- create valkey secret in defectdojo chart, outside of valkey chart
 createValkeySecret: false
 
-# -- create postgresql secret in defectdojo chart, outside of postgresql chart
 createPostgresqlSecret: false
 
 admin:
@@ -20,7 +16,7 @@ siteUrl: ""
 # 2. Django (uWSGI): The web interface and API.
 django:
   replicas: 1
-# ADD THIS BLOCK: Give Django enough RAM to survive password hashing
+# Give Django enough RAM to survive password hashing
   resources:
     requests:
       cpu: 500m
@@ -71,7 +67,6 @@ celery:
 
 #PostgreSQL: The database where all vulnerabilities are stored.
 # 4. The Database (PostgreSQL)
-# We use the Bitnami sub-chart.
 postgresql:
 
   auth:
@@ -80,13 +75,12 @@ postgresql:
     # Point to the shared master secret
     existingSecret: "defectdojo" 
     secretKeys:
-      # Tell Postgres exactly which keys in the JSON to use
       adminPasswordKey: "POSTGRES_POSTGRES_PASSWORD" 
       userPasswordKey: "POSTGRES_PASSWORD"
   primary:
     persistence:
       enabled: true
-      storageClass: "gp3" # Standard AWS storage
+      storageClass: "gp3" 
       size: 1Gi
 
 # 5. The Message Broker (Redis)
@@ -97,7 +91,6 @@ valkey:
   auth:
     # Point to the shared master secret
     existingSecret: "defectdojo"
-    # Tell Valkey exactly which key in the JSON to use
     existingSecretPasswordKey: "VALKEY_PASSWORD"
   primary:
     persistence:

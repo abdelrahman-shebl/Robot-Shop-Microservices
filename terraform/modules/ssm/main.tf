@@ -60,3 +60,12 @@ resource "aws_ssm_parameter" "dojo_creds" {
     VALKEY_PASSWORD               = var.secrets_map.DD_VALKEY_PASSWORD
   })
 }
+
+resource "aws_ssm_parameter" "opencost_integration" {
+  name      = "/prod/opencost/cloud-integration"
+  type      = "SecureString"
+  overwrite = true
+  value = jsonencode({
+    "cloud-integration.json" = var.opencost_integration_json
+  })
+}

@@ -3,7 +3,7 @@ module "karpenter_infra" {
   source  = "terraform-aws-modules/eks/aws//modules/karpenter"
   version = "21.15.1" 
 
-  cluster_name =  var.cluster_name #var.cluster_name
+  cluster_name =  var.cluster_name 
 
   create_pod_identity_association = true
   
@@ -22,50 +22,7 @@ module "karpenter_infra" {
   
   depends_on = [ module.eks ]
 }
- module "external_dns_pod_identity" {
-  source = "terraform-aws-modules/eks-pod-identity/aws"
 
-  name = "external-dns"
-
-  attach_external_dns_policy    = true
-  external_dns_hosted_zone_arns = [ module.zone.arn ]
-  associations = {
-    this = {
-      cluster_name    = "${var.cluster_name}"
-      namespace       = "edns"
-      service_account = "edns-sa"
-    }
-  }
-  depends_on = [ module.eks ]
-}
-
-module "cert_manager_pod_identity" {
-  source = "terraform-aws-modules/eks-pod-identity/aws"
-
-  name = "cert-manager"
-
-  attach_cert_manager_policy    = true
-  cert_manager_hosted_zone_arns = [ module.zone.arn ]
-  
-  associations = {
-    this = {
-      cluster_name    = "${var.cluster_name}"
-      namespace       = "cert-manager"
-      service_account = "cert-manager-sa"
-    }
-  }
-  depends_on = [ module.eks ]
-} 
-
-module "ebs_csi_infra" {
-  source  = "terraform-aws-modules/eks-pod-identity/aws"
-  version = "2.7.0"
-
-  name = "${var.cluster_name}-ebs-csi"
-
-  # Automatically attaches the required permissions for EBS
-  attach_aws_ebs_csi_policy = true
-}
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "21.15.1"
@@ -80,10 +37,11 @@ module "eks" {
   create_kms_key            = false
   encryption_config = null
   attach_encryption_policy = false
+
   # 1. Network Configuration
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
-  # 3. ADDED: This allows Karpenter nodes to join the cluster security group
+  # 3. This allows Karpenter nodes to join the cluster security group
   node_security_group_tags = {
     "karpenter.sh/discovery" = var.cluster_name
   }
@@ -194,7 +152,6 @@ module "eks" {
       })
     }
   }
-  # depends_on = [ module.vpc ]
 
 }
 
@@ -222,9 +179,6 @@ module "vpc" {
 
 }
 
-
-
-
 module "karpenter_chart_and_crds" {
   source         = "./modules/karpenter"
   queue_name     = module.karpenter_infra.queue_name
@@ -240,8 +194,65 @@ module "karpenter_chart_and_crds" {
 module "opencost_infra" {
   source       = "./modules/opencost"
   cluster_name = module.eks.cluster_name
-  depends_on = [ module.eks ]
+  environment  = var.env
+  depends_on   = [ module.eks ]
 }
+
+
+
+module "ssm" {
+  source  = "./modules/ssm"
+  secrets_map               = local.secrets
+  opencost_integration_json = module.opencost_infra.cloud_integration_json
+}
+
+
+module "addons" {
+  source                 = "./modules/addons"
+  node_role              = module.karpenter_infra.node_iam_role_name
+  domain                 = var.domain
+  env                    = var.env
+  cluster_name           = var.cluster_name
+  region                 = var.region
+  cloudIntegrationSecret = "cloud-integration"
+  depends_on = [ module.eks, module.karpenter_chart_and_crds ]
+}
+
+
+module "zone" {
+  source = "terraform-aws-modules/route53/aws"
+
+  name    = var.domain
+
+}
+
+
+resource "terraform_data" "cleanup_load_balancers" {
+  triggers_replace = {
+    cluster_name = var.cluster_name
+  }
+
+  # This guarantees the script runs BEFORE the ArgoCD apps are destroyed
+  depends_on = [
+    module.addons
+  ]
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+      echo "Deleting Ingress resources..."
+      kubectl delete ingress --all --all-namespaces --ignore-not-found=true --timeout=5m || true
+      
+      echo "Deleting LoadBalancer Services (Traefik)..."
+      kubectl get svc -A | grep LoadBalancer | awk '{print "kubectl delete svc " $2 " -n " $1}' | sh || true
+      
+      echo "Waiting 45 seconds for AWS Load Balancer Controller to process..."
+      sleep 45
+    EOT
+  }
+}
+
+
 
 module "external_secrets_pod_identity" {
   source = "terraform-aws-modules/eks-pod-identity/aws"
@@ -268,151 +279,47 @@ module "external_secrets_pod_identity" {
   depends_on = [ module.eks ]
 }
 
+ module "external_dns_pod_identity" {
+  source = "terraform-aws-modules/eks-pod-identity/aws"
 
-module "ssm" {
-  source  = "./modules/ssm"
-# Pass the entire map at once!
-  secrets_map = local.secrets
-}
+  name = "external-dns"
 
-
-module "addons" {
-  source                 = "./modules/addons"
-  node_role              = module.karpenter_infra.node_iam_role_name
-  domain                 = var.domain
-  env                    = var.env
-  cluster_name           = var.cluster_name
-  region                 = var.region
-  cloudIntegrationSecret = module.opencost_infra.cloudIntegrationSecret
-  depends_on = [ module.eks, module.karpenter_chart_and_crds, terraform_data.ebs_volume_cleanup ]
-}
-
-
-module "zone" {
-  source = "terraform-aws-modules/route53/aws"
-
-  name    = var.domain
-
-}
-
-resource "terraform_data" "ebs_volume_cleanup" {
-  triggers_replace = {
-    cluster_name = var.cluster_name
-    region       = var.region
+  attach_external_dns_policy    = true
+  external_dns_hosted_zone_arns = [ module.zone.arn ]
+  associations = {
+    this = {
+      cluster_name    = "${var.cluster_name}"
+      namespace       = "edns"
+      service_account = "edns-sa"
+    }
   }
-
-  depends_on = [module.eks]
-
-  provisioner "local-exec" {
-    when    = destroy
-    command = <<-EOT
-      echo "Step 1: Authenticating..."
-      aws eks update-kubeconfig --region ${self.triggers_replace.region} --name ${self.triggers_replace.cluster_name}
-
-      echo "Step 2: Fixing Hanging Namespaces (Patching Finalizers)..."
-      # This fixes the 'Terminating' hang for any namespace by removing the finalizer block
-      for ns in $(kubectl get namespaces | grep Terminating | awk '{print $1}'); do
-        echo "Force cleaning namespace: $ns"
-        kubectl patch namespace $ns -p '{"spec":{"finalizers":null}}' --type=merge || true
-      done
-
-      echo "Step 3: Force Deleting PVCs..."
-      kubectl delete pvc --all --all-namespaces --ignore-not-found=true --timeout=2m || true
-      
-      echo "Step 4: Waiting for detachment..."
-      sleep 40
-      
-      echo "Step 5: Enhanced EBS Sweep (Catching 'Available' AND 'In-Use' Orphans)..."
-      CLUSTER_NAME="${self.triggers_replace.cluster_name}"
-      
-      # We find ALL volumes tagged to this cluster, regardless of state
-      ALL_VOLS=$(aws ec2 describe-volumes \
-        --filters "Name=tag:kubernetes.io/cluster/$CLUSTER_NAME,Values=owned" \
-        --query "Volumes[*].VolumeId" --output text)
-
-      # And all Karpenter volumes
-      KARP_VOLS=$(aws ec2 describe-volumes \
-        --filters "Name=tag-key,Values=karpenter.sh/nodepool" \
-        --query "Volumes[*].VolumeId" --output text)
-
-      COMBINED_VOLS="$ALL_VOLS $KARP_VOLS"
-
-      for vol in $COMBINED_VOLS; do
-        if [ -n "$vol" ] && [ "$vol" != "None" ]; then
-          # Check if it's still attached (In-use)
-          STATE=$(aws ec2 describe-volumes --volume-ids $vol --query "Volumes[0].State" --output text)
-          
-          if [ "$STATE" == "in-use" ]; then
-            echo "Volume $vol is still attached. Forcing detachment..."
-            aws ec2 detach-volume --volume-id $vol --force || true
-            sleep 10
-          fi
-
-          echo "Deleting EBS volume: $vol"
-          aws ec2 delete-volume --volume-id $vol || true
-        fi
-      done
-      
-      echo "Cleanup complete."
-    EOT
-  }
-}
-resource "terraform_data" "cleanup_load_balancers" {
-  triggers_replace = {
-    cluster_name = var.cluster_name
-  }
-
-  # This guarantees the script runs BEFORE the ArgoCD apps are destroyed
-  depends_on = [
-    module.addons
-  ]
-
-  provisioner "local-exec" {
-    when    = destroy
-    command = <<-EOT
-      echo "Deleting Ingress resources..."
-      kubectl delete ingress --all --all-namespaces --ignore-not-found=true --timeout=5m || true
-      
-      echo "Deleting LoadBalancer Services (Traefik)..."
-      kubectl get svc -A | grep LoadBalancer | awk '{print "kubectl delete svc " $2 " -n " $1}' | sh || true
-      
-      echo "Waiting 45 seconds for AWS Load Balancer Controller to process..."
-      sleep 45
-    EOT
-  }
+  depends_on = [ module.eks ]
 }
 
-# module "eks_managed_node_group" {
-#   source = "terraform-aws-modules/eks/aws//modules/eks-managed-node-group"
-#   version = "21.15.1"
+module "cert_manager_pod_identity" {
+  source = "terraform-aws-modules/eks-pod-identity/aws"
 
-#   name            = "karpenter-node-group"
-#   cluster_name    = var.cluster_name
-#   subnet_ids = module.vpc.private_subnets
+  name = "cert-manager"
 
-#   cluster_primary_security_group_id = module.eks.cluster_primary_security_group_id
-#   vpc_security_group_ids            = [module.eks.node_security_group_id]
+  attach_cert_manager_policy    = true
+  cert_manager_hosted_zone_arns = [ module.zone.arn ]
+  
+  associations = {
+    this = {
+      cluster_name    = "${var.cluster_name}"
+      namespace       = "cert-manager"
+      service_account = "cert-manager-sa"
+    }
+  }
+  depends_on = [ module.eks ]
+} 
 
+module "ebs_csi_pod_identity" {
+  source  = "terraform-aws-modules/eks-pod-identity/aws"
+  version = "2.7.0"
 
-#   min_size     = 1
-#   max_size     = 2
-#   desired_size = 1
+  name = "${var.cluster_name}-ebs-csi"
 
-#   instance_types = ["c7i-flex.large"]
-#   capacity_type  = "ON_DEMAND"
-
-
-# }
-# module "edns_infra" {
-#   source       = "./modules/edns"
-#   cluster_name = var.cluster_name
-#   depends_on = [ module.eks ]
-# }
-
-
-# # add eso files
-# module "eso_fra" {
-#   source       = "./modules/eso"
-#   cluster_name = var.cluster_name
-#   depends_on = [ module.eks ]
-# }
+  # Automatically attaches the required permissions for EBS
+  attach_aws_ebs_csi_policy = true
+}
