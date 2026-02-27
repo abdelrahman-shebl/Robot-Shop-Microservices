@@ -21,6 +21,9 @@ RUN mvn package -DskipTests
 # We use the specific JDK Alpine image you requested.
 FROM eclipse-temurin:17-jdk-alpine-3.22
 
+# Install curl for health checks
+RUN apk add --no-cache curl
+
 WORKDIR /opt/shipping
 
 EXPOSE 8080
@@ -30,6 +33,11 @@ ENV CART_ENDPOINT=cart:8080 \
 
 # Copy the JAR from the builder stage
 COPY --from=build /opt/shipping/target/shipping-*.jar shipping.jar
+
+# Create non-root user
+RUN addgroup -g 2000 appuser && adduser -u 1000 -G appuser -s /sbin/nologin -D appuser
+
+USER appuser
 
 # Run the application
 CMD ["java", "-Xmn256m", "-Xmx768m", "-jar", "shipping.jar"]

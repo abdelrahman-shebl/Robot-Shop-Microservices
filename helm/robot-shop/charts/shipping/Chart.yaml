@@ -1,0 +1,11 @@
+apiVersion: v2
+name: shipping
+description: A Helm chart for Robot Shop shipping Service 
+type: application
+version: 0.1.0
+appVersion: "2.1.0"
+
+dependencies:
+  - name: common
+    version: "0.1.0"
+    repository: "file://../_common"

@@ -1,34 +1,47 @@
 services:
   mongodb:
-    build:
-      context: mongo
-    image: ${REPO}/rs-mongodb:${TAG}
+    container_name: rs-mongodb
+    # build:
+    #   context: mongo
+    image: ${REPO}/rs-mongo:${TAG}
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      CATALOGUE_MONGO_USER: ${CATALOGUE_MONGO_USER}
+      CATALOGUE_MONGO_PASSWORD: ${CATALOGUE_MONGO_PASSWORD}
+      CATALOGUE_MONGO_DATABASE: ${CATALOGUE_MONGO_DATABASE}
+      USER_MONGO_USER: ${USER_MONGO_USER}
+      USER_MONGO_PASSWORD: ${USER_MONGO_PASSWORD}
+      USER_MONGO_DATABASE: ${USER_MONGO_DATABASE}
     volumes:
-      - mongo-data:/var/lib/mongodb:ro
+      - mongo-data:/var/lib/mongodb
     networks:
       - data-services
 
   redis:
+    container_name: rs-redis
     image: redis:latest
     networks:
       - data-services
 
   rabbitmq:
+    container_name: rs-rabbitmq
     image: rabbitmq:3.8-management-alpine
     networks:
       - message-queue
 
   catalogue:
-    build:
-      context: catalogue
+    container_name: rs-catalogue
+    # build:
+    #   context: catalogue
     image: ${REPO}/rs-catalogue:${TAG}
     depends_on:
       - mongodb
     environment:
-      MONGO_URL: ${MONGO_CONNECTION_STRING}
+      MONGO_HOST: mongodb
+      MONGO_USER: ${CATALOGUE_MONGO_USER}
+      MONGO_PASSWORD: ${CATALOGUE_MONGO_PASSWORD}
+      MONGO_DATABASE: ${CATALOGUE_MONGO_DATABASE}
     networks:
       - api-services
       - data-services
@@ -39,14 +52,18 @@ services:
       retries: 3
 
   user:
-    build:
-      context: user
+    container_name: rs-user
+    # build:
+    #   context: user
     image: ${REPO}/rs-user:${TAG}
     depends_on:
       - mongodb
       - redis
     environment:
-      MONGO_URL: ${MONGO_CONNECTION_STRING_USER}
+      MONGO_HOST: mongodb
+      MONGO_USER: ${USER_MONGO_USER}
+      MONGO_PASSWORD: ${USER_MONGO_PASSWORD}
+      MONGO_DATABASE: ${USER_MONGO_DATABASE}
     networks:
       - api-services
       - data-services
@@ -57,8 +74,9 @@ services:
       retries: 3
 
   cart:
-    build:
-      context: cart
+    container_name: rs-cart
+    # build:
+    #   context: cart
     image: ${REPO}/rs-cart:${TAG}
     depends_on:
       - redis
@@ -72,30 +90,38 @@ services:
       retries: 3
 
   mysql:
-    build:
-      context: mysql
-    image: ${REPO}/rs-mysql-db:${TAG}
+    container_name: rs-mysql
+    # build:
+    #   context: mysql
+    image: ${REPO}/rs-mysql:${TAG}
     environment:
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_DATABASE: cities
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      SHIPPING_MYSQL_USER: ${SHIPPING_MYSQL_USER}
+      SHIPPING_MYSQL_PASSWORD: ${SHIPPING_MYSQL_PASSWORD}
+      SHIPPING_MYSQL_DATABASE: ${SHIPPING_MYSQL_DATABASE}
+      
+      RATINGS_MYSQL_USER: ${RATINGS_MYSQL_USER}
+      RATINGS_MYSQL_PASSWORD: ${RATINGS_MYSQL_PASSWORD}
+      RATINGS_MYSQL_DATABASE: ${RATINGS_MYSQL_DATABASE}
     cap_add:
       - NET_ADMIN
     volumes:
-      - mysql-data:/var/lib/mysql/:ro
+      - mysql-data:/var/lib/mysql/
     networks:
       - data-services
 
   shipping:
-    build:
-      context: shipping
+    container_name: rs-shipping
+    # build:
+    #   context: shipping
     image: ${REPO}/rs-shipping:${TAG}
     depends_on:
       - mysql
     environment:
-      SPRING_DATASOURCE_URL: ${MYSQL_CONNECTION_STRING}
-      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_HOST: mysql
+      MYSQL_USER: ${SHIPPING_MYSQL_USER}
+      MYSQL_PASSWORD: ${SHIPPING_MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${SHIPPING_MYSQL_DATABASE}
     networks:
       - api-services
       - data-services
@@ -106,14 +132,15 @@ services:
       retries: 3
 
   ratings:
-    build:
-      context: ratings
+    container_name: rs-ratings
+    # build:
+    #   context: ratings
     image: ${REPO}/rs-ratings:${TAG}
     environment:
       MYSQL_HOST: mysql
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_DATABASE: cities
+      MYSQL_USER: ${RATINGS_MYSQL_USER}
+      MYSQL_PASSWORD: ${RATINGS_MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${RATINGS_MYSQL_DATABASE}
     networks:
       - api-services
       - data-services
@@ -126,8 +153,9 @@ services:
       retries: 3
 
   payment:
-    build:
-      context: payment
+    container_name: rs-payment
+    # build:
+    #   context: payment
     image: ${REPO}/rs-payment:${TAG}
     depends_on:
       - rabbitmq
@@ -141,8 +169,9 @@ services:
       retries: 3
 
   dispatch:
-    build:
-      context: dispatch
+    container_name: rs-dispatch
+    # build:
+    #   context: dispatch
     image: ${REPO}/rs-dispatch:${TAG}
     depends_on:
       - rabbitmq
@@ -150,11 +179,9 @@ services:
       - message-queue
 
   web:
-    build:
-      context: web
-      args:
-        # agent key to download tracing libs
-        KEY: ${INSTANA_AGENT_KEY}
+    container_name: rs-web
+    # build:
+    #   context: web
     image: ${REPO}/rs-web:${TAG}
     depends_on:
       - catalogue
@@ -171,10 +198,6 @@ services:
       interval: 10s
       timeout: 10s
       retries: 3
-    # Uncomment to enable Instana EUM
-    # environment:
-      # INSTANA_EUM_KEY: <your eum key>
-      # INSTANA_EUM_REPORTING_URL: <your reporting url>
 
 volumes:
   mysql-data:

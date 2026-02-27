@@ -1,0 +1,73 @@
+{{- define "common.StatefulSet" -}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.name }}-ss
+  labels:
+    app: {{ .Values.name }}
+    tier: {{ .Values.tier }}
+
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.name }}
+  serviceName: {{ .Values.serviceName }}
+  replicas: {{ .Values.replicas }}
+
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.name }}
+        tier: {{ .Values.tier }}
+
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: {{ .Values.name }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            {{- if .Values.capabilities }}
+            {{- if .Values.capabilities.add }}
+            add:
+              {{- toYaml .Values.capabilities.add | nindent 16 }}
+            {{- end }}
+            {{- end }}
+            drop:
+              - ALL
+        image: "{{ .Values.image.repository }}/{{ .Values.image.name }}:{{ .Values.image.version }}"
+        imagePullPolicy: IfNotPresent
+        {{- if .Values.readinessProbe }}
+        readinessProbe:
+          {{- toYaml .Values.readinessProbe | nindent 10 }}
+        {{- end }}
+        {{- if .Values.livenessProbe }}
+        livenessProbe:
+          {{- toYaml .Values.livenessProbe | nindent 10 }}
+        {{- end }}
+        {{- if .Values.envFrom }}
+        envFrom:
+          {{- toYaml .Values.envFrom | nindent 10 }}
+        {{- end }}
+        ports:
+        - containerPort: {{ .Values.port }}
+        {{- if .Values.volumeMounts }}
+        volumeMounts:
+          {{- toYaml .Values.volumeMounts | nindent 10 }}
+        {{- end }}
+        {{- if .Values.resources }}
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        {{- end }}
+
+  {{- if .Values.volumeClaimTemplates }}
+  volumeClaimTemplates:
+    {{- toYaml .Values.volumeClaimTemplates | nindent 4 }}
+  {{- end }}
+{{- end }}

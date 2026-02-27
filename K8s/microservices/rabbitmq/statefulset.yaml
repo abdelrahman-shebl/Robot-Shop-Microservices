@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rabbitmq-ss
+  labels:
+    app: rabbitmq
+    env: production
+    version: v2.1.0
+    tier: message-queue
+  annotations:
+    maintainer: "Double Abdelrahman"
+    description: "RabbitMQ StatefulSet for Robot Shop Microservices"
+spec:
+  selector:
+    matchLabels:
+      app: rabbitmq
+  serviceName: "rabbitmq"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+        tier: message-queue
+    spec:
+      containers:
+      - name: rabbitmq
+        image: rabbitmq:3.8-management-alpine
+        imagePullPolicy: IfNotPresent 
+
+        ports:
+        - containerPort: 5672
+
+        volumeMounts:
+        - name: rabbitmq-data
+          mountPath: /var/lib/rabbitmq/
+  volumeClaimTemplates:
+  - metadata:
+      name: rabbitmq-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 200Mi

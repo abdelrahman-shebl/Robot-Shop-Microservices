@@ -1,0 +1,69 @@
+name: mongo
+tier: database
+replicas: 3 
+image:
+  repository: robotshop
+  name: rs-mongo
+  version: 2.1.0
+
+port: 27017
+
+envFrom:
+  - secretRef:
+      name: mongo-secrets
+
+    
+service:
+  port: 27017
+  clusterIP: None
+  name: mongodb
+
+volumeMounts:
+- name: mongo-data
+  mountPath: /var/lib/mongodb/
+
+volumeClaimTemplates:
+- metadata:
+    name: mongo-data
+  spec:
+    accessModes: [ "ReadWriteOnce" ]
+    resources:
+      requests:
+        storage: 200Mi
+
+NetworkPolicy:
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: catalogue
+    - podSelector:
+        matchLabels:
+          app: user
+
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          app: mongodb-exporter
+
+    ports:
+    - protocol: TCP
+      port: 27017
+
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+      
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53

@@ -217,7 +217,7 @@
 
         $scope.rateProduct = function(score) {
             console.log('rate product', $scope.data.product.sku, score);
-            var url = '/api/ratings/api/rate/' + $scope.data.product.sku + '/' + score;
+            var url = '/api/ratings/rate/' + $scope.data.product.sku + '/' + score;
             $http({
                 url: url,
                 method: 'PUT'
@@ -252,7 +252,7 @@
 
         function loadRating(sku) {
             $http({
-                url: '/api/ratings/api/fetch/' + sku,
+                url: '/api/ratings/fetch/' + sku,
                 method: 'GET'
             }).then((res) => {
                 $scope.data.rating = res.data;

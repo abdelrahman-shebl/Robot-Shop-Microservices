@@ -1,0 +1,158 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongodb-grafana-dashboard
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  mongodb-overview.json: |
+    {
+      "annotations": {"list": []},
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 1,
+      "panels": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"mappings": [{"options": {"0": {"text": "DOWN", "color": "red"}, "1": {"text": "UP", "color": "green"}}, "type": "value"}], "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}}, "overrides": []},
+          "gridPos": {"h": 4, "w": 4, "x": 0, "y": 0},
+          "id": 1,
+          "options": {"colorMode": "background", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+          "title": "MongoDB Status",
+          "targets": [{"expr": "mongodb_up", "legendFormat": "{{instance}}", "refId": "A"}],
+          "type": "stat"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"unit": "s", "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}}, "overrides": []},
+          "gridPos": {"h": 4, "w": 4, "x": 4, "y": 0},
+          "id": 2,
+          "options": {"colorMode": "value", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+          "title": "Uptime",
+          "targets": [{"expr": "mongodb_ss_uptime", "legendFormat": "", "refId": "A"}],
+          "type": "stat"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 100}, {"color": "red", "value": 500}]}}, "overrides": []},
+          "gridPos": {"h": 4, "w": 4, "x": 8, "y": 0},
+          "id": 3,
+          "options": {"colorMode": "value", "graphMode": "area", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+          "title": "Current Connections",
+          "targets": [{"expr": "mongodb_ss_connections{conn_type=\"current\"}", "legendFormat": "", "refId": "A"}],
+          "type": "stat"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}}, "overrides": []},
+          "gridPos": {"h": 4, "w": 4, "x": 12, "y": 0},
+          "id": 4,
+          "options": {"colorMode": "value", "graphMode": "area", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+          "title": "Available Connections",
+          "targets": [{"expr": "mongodb_ss_connections{conn_type=\"available\"}", "legendFormat": "", "refId": "A"}],
+          "type": "stat"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"unit": "decmbytes", "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 512}, {"color": "red", "value": 1024}]}}, "overrides": []},
+          "gridPos": {"h": 4, "w": 4, "x": 16, "y": 0},
+          "id": 5,
+          "options": {"colorMode": "value", "graphMode": "area", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+          "title": "Resident Memory",
+          "targets": [{"expr": "mongodb_ss_mem_resident", "legendFormat": "", "refId": "A"}],
+          "type": "stat"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"unit": "decmbytes", "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]}}, "overrides": []},
+          "gridPos": {"h": 4, "w": 4, "x": 20, "y": 0},
+          "id": 6,
+          "options": {"colorMode": "value", "graphMode": "area", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+          "title": "Virtual Memory",
+          "targets": [{"expr": "mongodb_ss_mem_virtual", "legendFormat": "", "refId": "A"}],
+          "type": "stat"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "ops/s", "drawStyle": "line", "fillOpacity": 10, "lineWidth": 1, "pointSize": 5, "showPoints": "never", "stacking": {"mode": "none"}}, "unit": "ops"}, "overrides": []},
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+          "id": 7,
+          "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs": ["mean", "lastNotNull"]}, "tooltip": {"mode": "multi"}},
+          "title": "Operations Rate",
+          "targets": [{"expr": "rate(mongodb_ss_opcounters[5m])", "legendFormat": "{{legacy_op_type}}", "refId": "A"}],
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "", "drawStyle": "line", "fillOpacity": 10, "lineWidth": 1, "pointSize": 5, "showPoints": "never", "stacking": {"mode": "none"}}, "unit": "short"}, "overrides": []},
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+          "id": 8,
+          "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs": ["mean", "lastNotNull"]}, "tooltip": {"mode": "multi"}},
+          "title": "Connections",
+          "targets": [
+            {"expr": "mongodb_ss_connections{conn_type=\"current\"}", "legendFormat": "current", "refId": "A"},
+            {"expr": "mongodb_ss_connections{conn_type=\"available\"}", "legendFormat": "available", "refId": "B"},
+            {"expr": "mongodb_ss_connections{conn_type=\"active\"}", "legendFormat": "active", "refId": "C"}
+          ],
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "MB", "drawStyle": "line", "fillOpacity": 20, "lineWidth": 1, "pointSize": 5, "showPoints": "never", "stacking": {"mode": "none"}}, "unit": "decmbytes"}, "overrides": []},
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+          "id": 9,
+          "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs": ["mean", "lastNotNull"]}, "tooltip": {"mode": "multi"}},
+          "title": "Memory Usage",
+          "targets": [
+            {"expr": "mongodb_ss_mem_resident", "legendFormat": "resident", "refId": "A"},
+            {"expr": "mongodb_ss_mem_virtual", "legendFormat": "virtual", "refId": "B"}
+          ],
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "", "drawStyle": "line", "fillOpacity": 10, "lineWidth": 1, "pointSize": 5, "showPoints": "never", "stacking": {"mode": "none"}}, "unit": "Bps"}, "overrides": []},
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+          "id": 10,
+          "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs": ["mean", "lastNotNull"]}, "tooltip": {"mode": "multi"}},
+          "title": "Network I/O",
+          "targets": [
+            {"expr": "rate(mongodb_ss_network_bytesIn[5m])", "legendFormat": "bytes in", "refId": "A"},
+            {"expr": "rate(mongodb_ss_network_bytesOut[5m])", "legendFormat": "bytes out", "refId": "B"}
+          ],
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "", "drawStyle": "line", "fillOpacity": 10, "lineWidth": 1, "pointSize": 5, "showPoints": "never", "stacking": {"mode": "none"}}, "unit": "ops"}, "overrides": []},
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+          "id": 11,
+          "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs": ["mean", "lastNotNull"]}, "tooltip": {"mode": "multi"}},
+          "title": "Asserts Rate",
+          "targets": [{"expr": "rate(mongodb_ss_asserts[5m])", "legendFormat": "{{assert_type}}", "refId": "A"}],
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "bytes", "drawStyle": "line", "fillOpacity": 10, "lineWidth": 1, "pointSize": 5, "showPoints": "never", "stacking": {"mode": "none"}}, "unit": "decbytes"}, "overrides": []},
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20},
+          "id": 12,
+          "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs": ["mean", "lastNotNull"]}, "tooltip": {"mode": "multi"}},
+          "title": "Database Storage",
+          "targets": [
+            {"expr": "mongodb_dbstats_dataSize", "legendFormat": "data size - {{database}}", "refId": "A"},
+            {"expr": "mongodb_dbstats_indexSize", "legendFormat": "index size - {{database}}", "refId": "B"},
+            {"expr": "mongodb_dbstats_storageSize", "legendFormat": "storage size - {{database}}", "refId": "C"}
+          ],
+          "type": "timeseries"
+        }
+      ],
+      "schemaVersion": 39,
+      "tags": ["mongodb", "percona"],
+      "templating": {"list": []},
+      "time": {"from": "now-1h", "to": "now"},
+      "title": "MongoDB Overview",
+      "uid": "mongodb-percona-overview",
+      "version": 1
+    }

@@ -1,0 +1,81 @@
+name: cart
+tier: backend
+
+image:
+  repository: robotshop
+  name: rs-cart
+  version: 2.1.0
+
+port: 8080
+
+Resources:
+  requests:
+    cpu: "350m"      
+    memory: "200Mi"  
+  limits:
+    cpu: "700m"      
+    memory: "400Mi" 
+    
+service:   
+  port: 8080
+  name: cart
+
+hpa:
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPU: 70
+  targetMemory: 80 
+
+NetworkPolicy:
+  policyTypes:
+    - Ingress
+    - Egress
+    
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: web
+
+    - podSelector:
+        matchLabels:
+          app: shipping 
+    - podSelector:
+        matchLabels:
+          app: payment
+    ports:
+    - protocol: TCP
+      port: 8080  
+    
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+      
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+
+  - to:
+    - podSelector:
+        matchLabels:
+          app: redis
+      
+    ports:
+    - protocol: TCP
+      port: 6379
+
+  - to:
+    - podSelector:
+        matchLabels:
+          app: catalogue
+      
+    ports:
+    - protocol: TCP
+      port: 8080

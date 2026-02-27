@@ -1,7 +1,7 @@
 FROM python:3.10-slim
 
-# Security: Create a non-root user immediately
-RUN groupadd -r appuser && useradd -r -g appuser appuser
+# Security: Create a non-root user with specific UID/GID
+RUN groupadd -g 2000 appuser && useradd -u 1000 -g appuser appuser
 
 WORKDIR /app
 
@@ -12,11 +12,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     INSTANA_SERVICE_NAME=payment
 
-# Install system dependencies required for building uWSGI
+# Install system dependencies required for building uWSGI and curl for health checks
 # We use a single RUN command to install, build, and cleanup to keep the layer small
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     gcc \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
@@ -28,11 +29,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY *.py payment.ini ./
 
-# # Security: Change ownership of the app directory to the non-root user
-# RUN chown -R appuser:appuser /app
+# Security: Change ownership of the app directory to the non-root user
+RUN chown -R appuser:appuser /app
 
-# # Switch to the non-root user
-# USER appuser
+# Switch to the non-root user
+USER appuser
 
 EXPOSE 8080
 

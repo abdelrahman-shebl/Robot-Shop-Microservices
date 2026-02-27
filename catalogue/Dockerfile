@@ -1,5 +1,7 @@
 FROM node:18-alpine
 
+# Install curl for health checks
+RUN apk add --no-cache curl
 
 EXPOSE 8080
 
@@ -10,5 +12,7 @@ COPY package.json /opt/server/
 RUN npm install
 
 COPY server.js /opt/server/
+
+USER node
 
 CMD ["node", "server.js"]

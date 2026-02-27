@@ -1,0 +1,27 @@
+# Certificates for Monitoring stack (Grafana & Prometheus)
+# Deployed in monitoring namespace
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: grafana-tls
+  namespace: monitoring
+spec:
+  secretName: grafana-tls
+  issuerRef:
+    name: letsencrypt-dns-staging
+    kind: ClusterIssuer
+  dnsNames:
+    - grafana.shebl22.me
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: prometheus-tls
+  namespace: monitoring
+spec:
+  secretName: prometheus-tls
+  issuerRef:
+    name: letsencrypt-dns-staging
+    kind: ClusterIssuer
+  dnsNames:
+    - prometheus.shebl22.me

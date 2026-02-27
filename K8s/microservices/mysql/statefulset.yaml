@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql-ss
+  labels:
+    app: mysql
+    env: production
+    version: v1.0
+    tier: database
+  annotations:
+    maintainer: "Double Abdelrahman"
+    description: "MySQL StatefulSet for Robot Shop Microservices"
+spec:
+  selector:
+    matchLabels:
+      app: mysql 
+  serviceName: "mysql"
+  replicas: 3 
+
+  template:
+    metadata:
+      labels:
+        app: mysql 
+        tier: database
+    
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: mysql
+        
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            add:
+              - NET_ADMIN
+            drop:
+              - ALL
+        image:  robotshop/rs-mysql-db:2.1.0          
+        envFrom:
+          - secretRef:
+              name: mysql-secrets
+        ports:
+        - containerPort: 3306
+        
+        volumeMounts:
+        - name: mysql-data
+          mountPath: /var/lib/mysql/
+
+      
+        
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 200Mi

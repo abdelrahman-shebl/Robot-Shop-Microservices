@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment
+  labels:
+    app: payment
+    env: production
+    version: v1.0
+    tier: backend
+  annotations:
+    maintainer: "Double Abdelrahman"
+    description: "Payment Service Deployment for Robot Shop Microservices"
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: payment
+  template:
+    metadata:
+      labels:
+        app: payment
+        tier: backend
+    spec:
+      containers:
+      - name: payment
+        image: robotshop/payment:2.1.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+
+        startupProbe: 
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          failureThreshold: 60   # 30 attempts to check if the app is started
+          periodSeconds: 10       # check every 10 seconds
+
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 60 # give some time to start the app
+          periodSeconds: 10 # check every 10 seconds
+          timeoutSeconds: 5
+          failureThreshold: 3 # after 3 failures, consider the pod unhealthy
+
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 20 # give some time to start the app
+          periodSeconds: 5 # check every 5 seconds
+          timeoutSeconds: 3 # wait for 3 seconds
+          failureThreshold: 3 # after 3 failures, consider the pod not ready
+            

@@ -1,0 +1,81 @@
+name: catalogue
+tier: backend
+
+image:
+  repository: robotshop
+  name: rs-catalogue
+  version: 2.1.0
+
+port: 8080
+env:        
+  - name: MONGO_HOST
+    value: mongodb
+  - name: MONGO_USER
+    value: catalogue
+  - name: MONGO_DATABASE
+    value: catalogue
+envFromSecrets:
+  - name: MONGO_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: CATALOGUE_MONGO_PASSWORD
+        name: mongo-secrets
+resources:
+  requests:
+    cpu: "350m"      
+    memory: "200Mi"  
+  limits:
+    cpu: "700m"      
+    memory: "400Mi" 
+    
+service:   
+  port: 8080
+  name: catalogue
+
+hpa:
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPU: 70
+  targetMemory: 80 
+
+NetworkPolicy:
+  policyTypes:
+    - Ingress
+    - Egress
+    
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: web
+
+    - podSelector:
+        matchLabels:
+          app: cart 
+    ports:
+    - protocol: TCP
+      port: 8080  
+    
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+      
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+
+  - to:
+    - podSelector:
+        matchLabels:
+          app: mongo
+      
+    ports:
+    - protocol: TCP
+      port: 27017

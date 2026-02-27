@@ -1,0 +1,35 @@
+
+# 1. The Provider
+provider: aws
+
+# 2. Scope (Safety Filter)
+# CRITICAL: Only allow it to touch specific domains. 
+domainFilters:
+  - "" 
+
+# 3. AWS Configuration
+aws:
+  region: ""
+  zoneType: public # public, private, or restricted
+
+# 4. Synchronization Policy
+#  - sync: Creates AND Deletes records (Full automation).
+#  - upsert-only: Creates/Updates but NEVER deletes (Safe for beginners).
+policy: sync
+
+# 5. Registry (The "Owner" ID)
+# CRITICAL: ExternalDNS creates TXT records to "mark" which records it owns.
+# This prevents it from deleting records created by other clusters or Terraform.
+registry: txt
+txtOwnerId: "" # Pick a unique name for the cluster
+txtPrefix: external-dns-
+
+serviceAccount:
+  create: true
+  name: "edns-sa" 
+
+# 7. What to watch?
+# Tell it to look at Ingress (Traefik) and Services
+sources:
+  - ingress
+  - service

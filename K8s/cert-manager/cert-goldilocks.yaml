@@ -1,0 +1,14 @@
+# Certificate for Goldilocks
+# Deployed in goldilocks namespace
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: goldilocks-tls
+  namespace: goldilocks
+spec:
+  secretName: goldilocks-tls
+  issuerRef:
+    name: letsencrypt-dns-staging
+    kind: ClusterIssuer
+  dnsNames:
+    - goldilocks.shebl22.me

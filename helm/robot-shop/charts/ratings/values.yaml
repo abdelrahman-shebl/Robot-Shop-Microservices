@@ -1,0 +1,101 @@
+name: ratings
+tier: backend
+
+image:
+  repository: robotshop
+  name: rs-ratings
+  version: 2.1.0
+
+port: 80
+
+env:
+  - name: MYSQL_HOST
+    value: mysql
+
+envFromSecrets:
+  - name: MYSQL_USER
+    valueFrom:
+      secretKeyRef:
+        key: RATINGS_MYSQL_USER
+        name: mysql-secrets
+
+  - name: MYSQL_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: RATINGS_MYSQL_PASSWORD
+        name: mysql-secrets
+
+  - name: MYSQL_DATABASE
+    valueFrom:
+      secretKeyRef:
+        key: RATINGS_MYSQL_DATABASE
+        name: mysql-secrets
+capabilities:
+  add:
+    - NET_BIND_SERVICE
+
+Resources:
+  requests:
+    cpu: "350m"      
+    memory: "200Mi"  
+  limits:
+    cpu: "700m"      
+    memory: "400Mi" 
+    
+service:   
+  port: 80
+  name: ratings
+
+hpa:
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPU: 70
+  targetMemory: 80 
+
+NetworkPolicy:
+
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: web
+
+    ports:
+    - protocol: TCP
+      port: 80  
+    
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+      
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+
+  - to:
+    - podSelector:
+        matchLabels:
+          app: mysql
+      
+    ports:
+    - protocol: TCP
+      port: 3306
+
+  - to:
+    - podSelector:
+        matchLabels:
+          app: catalogue
+      
+    ports:
+    - protocol: TCP
+      port: 8080

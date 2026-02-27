@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: user-deployment
+  labels:
+    app: user
+    tier: backend
+
+spec:
+  selector:
+    matchLabels:
+      app: user
+  template:
+    metadata:
+      labels:
+        app: user
+        tier: backend
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 2000
+        fsGroup: 3000
+        seccompProfile:
+          type: RuntimeDefault
+        
+
+      containers:
+      - name: user
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+            
+        image: robotshop/rs-user:2.1.0
+        env:
+          - name: MONGO_HOST
+            value: mongodb
+
+          - name: MONGO_USER
+            valueFrom:
+              secretKeyRef:
+                key: MONGO_USER
+                name: mongo-secrets
+
+          - name: MONGO_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: MONGO_PASSWORD
+                name: mongo-secrets
+
+          - name: MONGO_DATABASE
+            valueFrom:
+              secretKeyRef:
+                key: MONGO_DATABASE
+                name: mongo-secrets
+                
+        resources:
+          requests:
+            cpu: "350m"      
+            memory: "200Mi"  
+          limits:
+            cpu: "700m"      
+            memory: "400Mi"      
+        ports:
+        - containerPort: 8080

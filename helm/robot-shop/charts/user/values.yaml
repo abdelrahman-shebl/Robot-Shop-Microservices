@@ -1,0 +1,111 @@
+name: user
+tier: backend
+
+image:
+  repository: robotshop
+  name: rs-user
+  version: 2.1.0
+
+port: 8080
+
+env:
+  - name: MONGO_HOST
+    value: mongodb
+
+envFromSecrets:
+  - name: MONGO_USER
+    valueFrom:
+      secretKeyRef:
+        key: USER_MONGO_USER
+        name: mongo-secrets
+
+  - name: MONGO_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: USER_MONGO_PASSWORD
+        name: mongo-secrets
+
+  - name: MONGO_DATABASE
+    valueFrom:
+      secretKeyRef:
+        key: USER_MONGO_DATABASE
+        name: mongo-secrets
+
+
+Resources:
+  requests:
+    cpu: "350m"      
+    memory: "200Mi"  
+  limits:
+    cpu: "700m"      
+    memory: "400Mi" 
+    
+service:   
+  port: 8080
+  name: user
+
+hpa:
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPU: 70
+  targetMemory: 80 
+
+NetworkPolicy:
+  policyTypes:
+    - Ingress
+    - Egress
+    
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: web
+
+    - podSelector:
+        matchLabels:
+          app: payment 
+    
+    ports:
+    - protocol: TCP
+      port: 8080  
+    
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+      
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+
+  - to:
+    - podSelector:
+        matchLabels:
+          app: mongo
+      
+    ports:
+    - protocol: TCP
+      port: 27017
+
+  - to:
+    - podSelector:
+        matchLabels:
+          app: redis
+      
+    ports:
+    - protocol: TCP
+      port: 6379
+
+  - to:
+    - podSelector:
+        matchLabels:
+          app: php
+    ports:
+    - protocol: TCP
+      port: 80

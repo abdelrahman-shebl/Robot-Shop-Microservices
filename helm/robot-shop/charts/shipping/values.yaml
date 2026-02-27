@@ -1,0 +1,84 @@
+name: shipping
+tier: backend
+
+image:
+  repository: robotshop
+  name: rs-shipping
+  version: 2.1.0
+
+port: 8080
+env:        
+  - name: MYSQL_HOST
+    value: mysql
+  - name: MYSQL_USER
+    value: shipping
+  - name: MYSQL_DATABASE
+    value: cities
+envFromSecrets:
+  - name: MYSQL_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: SHIPPING_MYSQL_PASSWORD
+        name: mysql-secrets
+Resources:
+  requests:
+    cpu: "350m"      
+    memory: "400Mi"  
+  limits:
+    cpu: "700m"      
+    memory: "800Mi" 
+    
+service:   
+  port: 8080
+  name: shipping
+
+hpa:
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPU: 70
+  targetMemory: 80 
+
+NetworkPolicy:
+  policyTypes:
+    - Ingress
+    - Egress
+    
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: web
+    ports:
+    - protocol: TCP
+      port: 8080  
+    
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+      
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+
+  - to:
+    - podSelector:
+        matchLabels:
+          app: cart
+      
+    ports:
+    - protocol: TCP
+      port: 8080
+  - to:
+    - podSelector:
+        matchLabels:
+          app: mysql
+    ports:  
+    - protocol: TCP
+      port: 3306

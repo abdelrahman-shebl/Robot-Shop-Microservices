@@ -1,0 +1,22 @@
+apiVersion: policies.kyverno.io/v1
+kind: ImageValidatingPolicy
+metadata:
+  name: verify-robot-shop
+spec:
+  # CRITICAL FIX: Tell the API server to intercept Pod creation
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+        
+  matchImageReferences:
+    - glob: "docker.io/shebl22/rs-*"
+  attestors:
+    - name: github-actions
+      cosign:
+        keyless:
+          identities:
+            - subjectRegExp: "https://github.com/abdelrahman-shebl/Robot-Shop-Microservices/.github/workflows/CI-CD.yml@.*"
+              issuer: "https://token.actions.githubusercontent.com"

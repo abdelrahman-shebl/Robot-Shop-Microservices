@@ -1,0 +1,14 @@
+# Certificate for DefectDojo
+# Deployed in dojo namespace
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: defectdojo-tls
+  namespace: dojo
+spec:
+  secretName: defectdojo-tls
+  issuerRef:
+    name: letsencrypt-dns-staging
+    kind: ClusterIssuer
+  dnsNames:
+    - dojo.shebl22.me

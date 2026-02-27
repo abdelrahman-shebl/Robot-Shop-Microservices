@@ -1,0 +1,9 @@
+serviceMonitor:
+  enabled: true
+
+podLabels:
+  app: mongodb-exporter
+
+existingSecret:
+  name: "mongo-secrets"
+  key: "MONGODB_URI"

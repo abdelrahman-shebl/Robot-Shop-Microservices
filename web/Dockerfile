@@ -23,6 +23,9 @@ RUN if [ -n "$KEY" ]; then \
 
 FROM nginx:latest
 
+# Create non-root user with specific UID/GID
+RUN groupadd -g 2000 appuser && useradd -u 1000 -g appuser appuser
+
 EXPOSE 8080
 
 ENV CATALOGUE_HOST=catalogue \
@@ -36,8 +39,23 @@ ENV CATALOGUE_HOST=catalogue \
 # Instana tracing
 COPY --from=build /instana/*.so /tmp/
 
-COPY entrypoint.sh /root/
-ENTRYPOINT ["/root/entrypoint.sh"]
+# Create app directory for non-root user
+RUN mkdir -p /app && chown appuser:appuser /app
+
+COPY --chown=appuser:appuser entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 
 COPY default.conf.template /etc/nginx/conf.d/default.conf.template
 COPY static /usr/share/nginx/html
+
+# Fix ownership of nginx directories and files for non-root user
+RUN chown -R appuser:appuser /usr/share/nginx /var/cache/nginx /var/log/nginx && \
+    chown -R appuser:appuser /etc/nginx && \
+    touch /var/run/nginx.pid && \
+    chown appuser:appuser /var/run/nginx.pid
+
+# Switch to non-root user
+USER appuser
+
+# Set the correct entrypoint
+ENTRYPOINT ["/app/entrypoint.sh"]

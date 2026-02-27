@@ -58,6 +58,9 @@ jobs:
           path: gitleaks-report.json
           
   image_scan: #SCA (Software Composition Analysis) of both the OS and Application layers  + Container Security
+      permissions: 
+        id-token: write
+        contents: read
       name: Image Scan
       strategy:
         fail-fast: false # Don't stop other scans if one app fails
@@ -67,8 +70,11 @@ jobs:
       steps:
       - name: Checkout
         uses: actions/checkout@v6.0.2
-      -
-        name: Login to Docker Hub
+
+      - name: cosign-installer
+        uses: sigstore/cosign-installer@v4.0.0
+
+      - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
@@ -105,6 +111,7 @@ jobs:
 
       - name: push Docker images
         uses: docker/build-push-action@v6.18.0
+        id: push_step
         with:
           push: true
           context: ${{ matrix.app }}
@@ -112,6 +119,13 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.app }}
           tags: ${{ vars.DOCKERHUB_USERNAME }}/rs-${{ matrix.app }}:${{github.sha}}
 
+      - name: Sign the published Docker images   
+        env:
+          DIGEST: ${{ steps.push_step.outputs.digest }}
+        run: |
+          cosign sign --yes "${{ vars.DOCKERHUB_USERNAME }}/rs-${{ matrix.app }}@${{env.DIGEST}}"
+          # We are signing "${IMAGE}@${DIGEST}" instead of "${IMAGE}:${TAG}". This guarantees we are signing the immutable cryptographic fingerprint of the image
+          # The --yes flag: it prompts you to confirm you want to push the signature to the public transparency log (Rekor).
   dast_scan:
     name: DAST Security Scan
     runs-on: ubuntu-latest
@@ -156,7 +170,7 @@ jobs:
         with:
           target: 'http://localhost:8080'
           # Passing 'fail_action: true' ensures the pipeline breaks if high-risk bugs are found
-          create_issue: false
+          allow_issue_writing: false
           fail_action: false 
           cmd_options: '-x report_xml.xml'
 

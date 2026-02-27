@@ -1,0 +1,72 @@
+name: mysql
+tier: database
+replicas: 3 
+image:
+  repository: robotshop
+  name: rs-mysql
+  version: 2.1.0
+
+port: 3306
+
+envFrom:
+  - secretRef:
+      name: mysql-secrets
+capabilities:
+  add:
+    - NET_ADMIN
+
+    
+service:
+  port: 3306
+  clusterIP: None
+  name: mysql
+
+volumeMounts:
+- name: mysql-data
+  mountPath: /var/lib/mysql/
+
+volumeClaimTemplates:
+- metadata:
+    name: mysql-data
+  spec:
+    accessModes: [ "ReadWriteOnce" ]
+    resources:
+      requests:
+        storage: 200Mi
+
+NetworkPolicy:
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: shipping
+    - podSelector:
+        matchLabels:
+          app: ratings
+
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          app: mysql-exporter
+
+    ports:
+    - protocol: TCP
+      port: 3306
+
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+      
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53

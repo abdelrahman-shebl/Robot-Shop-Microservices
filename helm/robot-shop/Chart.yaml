@@ -1,0 +1,79 @@
+apiVersion: v2
+name: robot-shop
+description: A microservices e-commerce application
+type: application
+version: 1.0.0
+appVersion: "2.1.0"
+
+keywords:
+  - microservices
+  - e-commerce
+  - kubernetes
+
+dependencies:
+  # Library chart (templates)
+  - name: common
+    version: "0.1.0"
+    repository: "file://./charts/_common"
+
+  # External chart
+  - name: redis
+    version: "24.1.6"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: redis.enabled
+
+  - name: rabbitmq
+    version: "16.0.14"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: rabbitmq.enabled
+
+  # Service charts
+  - name: user
+    version: "0.1.0"
+    repository: "file://./charts/user"
+    condition: user.enabled
+
+  - name: web
+    version: "0.1.0"
+    repository: "file://./charts/web"
+    condition: web.enabled
+
+  - name: mysql
+    version: "0.1.0"
+    repository: "file://./charts/mysql"
+    condition: mysql.enabled
+
+  - name: ratings
+    version: "0.1.0"
+    repository: "file://./charts/ratings"
+    condition: ratings.enabled
+
+  - name: dispatch
+    version: "0.1.0"
+    repository: "file://./charts/dispatch"
+    condition: dispatch.enabled
+
+  - name: cart 
+    version: "0.1.0"
+    repository: "file://./charts/cart"
+    condition: cart.enabled
+
+  - name: catalogue
+    version: "0.1.0"
+    repository: "file://./charts/catalogue"
+    condition: catalogue.enabled
+    
+  - name: mongodb
+    version: "0.1.0"  
+    repository: "file://./charts/mongodb"
+    condition: mongodb.enabled
+  
+  - name: shipping
+    version: "0.1.0"
+    repository: "file://./charts/shipping"
+    condition: shipping.enabled
+
+  - name: payment
+    version: "0.1.0"
+    repository: "file://./charts/payment"
+    condition: payment.enabled

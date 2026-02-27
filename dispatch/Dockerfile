@@ -18,9 +18,17 @@ RUN CGO_ENABLED=0 go build -o dispatch .
 # Stage 2: The Runner (Holds only the final binary)
 FROM alpine:latest
 
+# Create non-root user with specific UID/GID
+RUN addgroup -g 2000 appuser && adduser -u 1000 -G appuser -s /sbin/nologin -D appuser
+
 WORKDIR /app
 
 # Copy only the compiled binary from the builder stage
 COPY --from=builder /app/dispatch .
+
+# Fix ownership
+RUN chown -R appuser:appuser /app
+
+USER appuser
 
 CMD ["./dispatch"]

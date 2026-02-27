@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ratings-deployment
+  labels:
+    app: ratings
+    tier: backend
+spec:
+  
+  selector:
+    matchLabels:
+      app: ratings
+  template:
+    metadata:
+      labels:
+        app: ratings
+        tier: backend
+    spec:
+      
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 2000
+        fsGroup: 3000
+        seccompProfile:         
+          type: RuntimeDefault
+
+      containers:
+      - name: ratings
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            add:
+              - NET_BIND_SERVICE
+        image: robotshop/rs-ratings:2.1.0
+        imagePullPolicy: IfNotPresent
+        env:
+
+          - name: MYSQL_HOST
+            value: mysql
+
+          - name: MYSQL_USER
+            valueFrom:
+              secretKeyRef:
+                key: MYSQL_USER
+                name: mysql-secrets
+
+          - name: MYSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: MYSQL_PASSWORD
+                name: mysql-secrets
+
+          - name: MYSQL_DATABASE
+            valueFrom:
+              secretKeyRef:
+                key: MYSQL_DATABASE
+                name: mysql-secrets
+                
+        resources:
+          requests:
+            cpu: "350m"      
+            memory: "200Mi"  
+          limits:
+            cpu: "700m"      
+            memory: "400Mi" 
+
+        ports:
+        - containerPort: 80
