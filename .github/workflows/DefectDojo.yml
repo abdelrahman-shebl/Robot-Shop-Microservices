@@ -21,7 +21,7 @@ jobs:
         id: get-token
         run: |
           # Dynamically fetch the token using credentials stored in GitHub Secrets
-          TOKEN=$(curl -s -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/api-token-auth/" \
+          TOKEN=$(curl -s -k -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/api-token-auth/" \
             -H "Content-Type: application/json" \
             -d '{"username":"${{ secrets.DD_USERNAME }}","password":"${{ secrets.DD_PASSWORD }}"}' | jq -r .token)
             
@@ -50,7 +50,7 @@ jobs:
           # 1. Handle SAST
           if [ -f "semgrep-reports.sarif" ]; then
             echo "Uploading Semgrep SAST..."
-            curl -X POST "$DOJO_URL" \
+            curl -k -X POST "$DOJO_URL" \
               -H "$AUTH_HEADER" \
               -F "scan_type=SARIF" \
               -F "product_type_name=$PRODUCT_TYPE" \
@@ -64,7 +64,7 @@ jobs:
           # 2. Handle Secrets (Updated for JSON)
           if [ -f "gitleaks-report.json" ]; then
             echo "Uploading Gitleaks Secrets..."
-            curl -X POST "$DOJO_URL" \
+            curl -k -X POST "$DOJO_URL" \
               -H "$AUTH_HEADER" \
               -F "scan_type=Gitleaks Scan" \
               -F "product_type_name=$PRODUCT_TYPE" \
@@ -80,7 +80,7 @@ jobs:
             if [ -f "$report" ] && [[ "$report" != "semgrep-reports.sarif" && "$report" != "gitleaks-reports.sarif" ]]; then
               APP_NAME=$(echo "$report" | sed 's/-reports.sarif//')
               echo "Uploading Image Scan for $APP_NAME..."
-              curl -X POST "$DOJO_URL" \
+              curl -k -X POST "$DOJO_URL" \
                 -H "$AUTH_HEADER" \
                 -F "scan_type=SARIF" \
                 -F "product_type_name=$PRODUCT_TYPE" \
@@ -95,7 +95,7 @@ jobs:
           # 4. Handle DAST (Updated for XML)
           if [ -f "report_xml.xml" ]; then
              echo "Uploading ZAP DAST..."
-             curl -X POST "$DOJO_URL" \
+             curl -k -X POST "$DOJO_URL" \
               -H "$AUTH_HEADER" \
               -F "scan_type=ZAP Scan" \
               -F "product_type_name=$PRODUCT_TYPE" \
