@@ -1,6 +1,6 @@
 .image: &tag
   repository: shebl22
-  version: cc89c1cdf0c6d222621b48b1a4f1f9b32aa83712
+  version: 71f70f79c895a35bc48f8b830a43127f72283212
 global:
   security:
     allowInsecureImages: true
