@@ -5,7 +5,7 @@ A microservices e-commerce application evolved into a **full production-grade De
 > Originally based on [Stan's Robot Shop](https://github.com/instana/robot-shop) — completely re-engineered with a production Kubernetes stack.
 
 <p align="center">
-  <img src="Images/Robot-Shop-Diagaram.png" alt="Robot Shop Architecture" width="100%"/>
+  <img src="Images/Robot-Shop-Diagaram.jpeg" alt="Robot Shop Architecture" width="100%"/>
 </p>
 
 ---
@@ -31,7 +31,7 @@ Stan's Robot Shop is a **12-microservice e-commerce application** built with a p
 
 <!-- ARCHITECTURE DIAGRAM -->
 <p align="center">
-  <img src="Images/Robot%20Shop%20Architecture.png" alt="Robot Shop Architecture" width="100%"/>
+  <img src="Images/RobotShopArchitecture.jpeg" alt="Robot Shop Architecture" width="100%"/>
 </p>
 
 | Service | Technology | Role |
