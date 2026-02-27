@@ -4,9 +4,8 @@ A microservices e-commerce application evolved into a **full production-grade De
 
 > Originally based on [Stan's Robot Shop](https://github.com/instana/robot-shop) — completely re-engineered with a production Kubernetes stack.
 
-<!-- ARCHITECTURE DIAGRAM -->
 <p align="center">
-  <img src="Images/Robot%20Shop%20Architecture.png" alt="Robot Shop Architecture" width="100%"/>
+  <img src="Images/Robot-Shop-Diagaram.png" alt="Robot Shop Architecture" width="100%"/>
 </p>
 
 ---
@@ -29,6 +28,11 @@ A microservices e-commerce application evolved into a **full production-grade De
 ## 🛒 The Application
 
 Stan's Robot Shop is a **12-microservice e-commerce application** built with a polyglot stack:
+
+<!-- ARCHITECTURE DIAGRAM -->
+<p align="center">
+  <img src="Images/Robot%20Shop%20Architecture.png" alt="Robot Shop Architecture" width="100%"/>
+</p>
 
 | Service | Technology | Role |
 |---------|-----------|------|
@@ -361,7 +365,7 @@ Each chart deployed by ArgoCD introduces a specific capability. Click to expand 
 - kube-state-metrics for cluster state
 
 <details>
-<summary>Screenshots</summary>
+<summary><h1>Screenshots</h1></summary>
 
 ![Prometheus](Images/Prometheus/Prometheus_final.png)
 ![Grafana Login](Images/Grafana/Grafana%20login_final.png)
@@ -396,7 +400,7 @@ Each chart deployed by ArgoCD introduces a specific capability. Click to expand 
 **How:** Deployed at `dojo.shebl22.me`. Pipeline reports can be imported to visualize vulnerabilities across all services in one dashboard.
 
 <details>
-<summary>Screenshots</summary>
+<summary><h1>Screenshots</h1></summary>
 
 ![DefectDojo 1](Images/DefectDojo/DD1.png)
 ![DefectDojo 1 Highlighted](Images/DefectDojo/DD1_final.png)
@@ -420,7 +424,7 @@ Each chart deployed by ArgoCD introduces a specific capability. Click to expand 
 **Also includes Grafana dashboards** showing cost breakdowns per service:
 
 <details>
-<summary>Screenshots</summary>
+<summary><h1>Screenshots</h1></summary>
 
 ![OpenCost UI](Images/OpenCost/OpenCost-1_final.png)
 ![OpenCost 2](Images/OpenCost/OpenCost-2.png)
@@ -444,7 +448,7 @@ Each chart deployed by ArgoCD introduces a specific capability. Click to expand 
 **How:** Analyzes workload metrics and shows a dashboard at `goldilocks.shebl22.me` with per-container CPU/memory suggestions — helping avoid over-provisioning.
 
 <details>
-<summary>Screenshots</summary>
+<summary><h1>Screenshots</h1></summary>
 
 ![Goldilocks 1](Images/Goldilocks/goldilocks-1_final.png)
 ![Goldilocks 2](Images/Goldilocks/goldilocks-2.png)
@@ -476,7 +480,7 @@ Each chart deployed by ArgoCD introduces a specific capability. Click to expand 
 **How:** An `ImageValidatingPolicy` requires all `docker.io/shebl22/rs-*` images to have a valid Cosign signature from the GitHub Actions OIDC identity. Unsigned or tampered images are **rejected at admission**.
 
 <details>
-<summary>Screenshots</summary>
+<summary><h1>Screenshots</h1></summary>
 
 ![Kyverno 1](Images/Kyverno/Kyverno-1.png)
 ![Kyverno 2](Images/Kyverno/Kyverno-2.png)
@@ -505,7 +509,7 @@ Each chart deployed by ArgoCD introduces a specific capability. Click to expand 
 | Limits per pool | 50 CPU, 200Gi RAM |
 
 <details>
-<summary>Screenshots</summary>
+<summary><h1>Screenshots</h1></summary>
 
 ![Karpenter 1](Images/Karpenter/Karpenter-1.png)
 ![Karpenter 2](Images/Karpenter/Karpenter-2.png)
