@@ -1,0 +1,58 @@
+# 1. Install the VPA (Crucial)
+# Goldilocks relies on the VPA "Recommender" to do the math.
+# If you don't have VPA installed already, set this to true.
+vpa:
+  enabled: true
+  recommender:
+    enabled: true
+  updater:
+    enabled: false # Keep false! We only want advice, we don't want it restarting pods.
+  admissionController: 
+    enabled: false # This prevents the Helm chart from generating the random TLS certificate, stops any potential YAML mutations, and guarantees that ArgoCD stays perfectly green and synchronized.
+# 2. Controller Settings
+controller:
+  # This flag makes Goldilocks scan EVERY namespace automatically.
+  # Without this, you must manually label every namespace "goldilocks.fairwinds.com/enabled=true"
+  flags:
+    on-by-default: true
+      # or monitor certain name spaces
+# # 1. Disable global monitoring
+#       on-by-default: false
+    
+#       # 2. Add your list here (comma-separated string)
+#       # These namespaces will be monitored AUTOMATICALLY without labels.
+#       include-namespaces: "backend,frontend,payments-service,redis"
+
+# 3. Dashboard (The UI)
+dashboard:
+  enabled: true
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 80
+# Exclude system pods that you can't really change anyway
+  excludeContainers: "linkerd-proxy,istio-proxy,aws-node,kube-proxy"
+
+# 4. Ingress (Expose via Traefik)
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    annotations:
+      traefik.ingress.kubernetes.io/router.entrypoints: "websecure"
+      traefik.ingress.kubernetes.io/backend-protocol: "http"
+    # TLS certificate from cert-manager
+    tls:
+      - secretName: goldilocks-tls
+        hosts:
+          - ""
+    hosts:
+      - host: ""
+        paths:
+          - path: "/"
+            type: Prefix
+
+# 5. Resources (Good defaults for production)
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi

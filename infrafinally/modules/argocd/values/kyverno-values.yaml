@@ -1,0 +1,12 @@
+# Disable CRD migration hooks to avoid ArgoCD conflicts
+# (migrate-resources ClusterRole/ClusterRoleBinding "already exists" errors)
+crds:
+  migration:
+    enabled: false
+
+global:
+  tolerations:
+  - key: "workload-type"
+    operator: "Equal"
+    value: "system"
+    effect: "NoSchedule"

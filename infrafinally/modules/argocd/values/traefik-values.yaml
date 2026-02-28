@@ -1,0 +1,19 @@
+ports:
+  web:
+    port: 80
+  websecure:
+    port: 443
+
+service:
+  enabled: true
+  type: LoadBalancer
+
+# HTTP to HTTPS redirect only - cert-manager handles certificates
+additionalArguments:
+  - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+  - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+  - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
+
+# No persistence needed - cert-manager stores certs as K8s secrets
+persistence:
+  enabled: false

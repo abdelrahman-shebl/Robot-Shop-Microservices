@@ -1,0 +1,37 @@
+clusterName: ""  # The name of your EKS Cluster
+serviceAccount:
+  create: true
+  name: "opencost-sa"
+opencost:
+  cloudCost:
+    enabled: true
+  cloudIntegrationSecret: ""
+  # 2. Prometheus Connection (CRITICAL)
+  # OpenCost needs to query your existing Prometheus.
+  prometheus:
+    internal:
+      enabled: false  # Don't install a new Prometheus
+    external:
+      enabled: true
+      # REPLACE this with your actual Prometheus service URL
+      url: http://monitor-prometheus.monitoring.svc:80
+  metrics:
+    serviceMonitor:
+      enabled: true
+
+  ui:
+    ingress:
+      enabled: "true"
+      ingressClassName: traefik
+      annotations:
+        traefik.ingress.kubernetes.io/router.entrypoints: "websecure"
+        traefik.ingress.kubernetes.io/backend-protocol: "http"
+      # TLS certificate from cert-manager
+      tls:
+        - secretName: opencost-tls
+          hosts:
+            - ""
+      hosts:
+      - host: ""
+        paths:
+          - "/"
